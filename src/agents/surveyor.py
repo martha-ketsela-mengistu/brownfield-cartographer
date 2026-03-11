@@ -28,21 +28,30 @@ class SurveyorAgent:
         # Git velocity
         change_frequency = self.get_git_velocity(rel_path)
         
-        # AST analysis (placeholders for now)
+        # AST analysis
         imports = []
         functions = []
         classes = []
         
-        # Simple heuristic extraction for now to fulfill the model
-        if file_path.endswith(".py"):
-            for line in lines:
-                line = line.strip()
-                if line.startswith("import ") or line.startswith("from "):
-                    imports.append(line)
-                elif line.startswith("def "):
-                    functions.append(line.split("(")[0].replace("def ", ""))
-                elif line.startswith("class "):
-                    classes.append(line.split("(")[0].replace("class ", "").replace(":", ""))
+        try:
+            tree, content = analyze_ast(file_path)
+            if tree and content:
+                if file_path.endswith(".py"):
+                    from ..analyzers.tree_sitter_analyzer import extract_python_structure
+                    imports, functions, classes = extract_python_structure(tree, content)
+                elif file_path.endswith(".sql"):
+                    from ..analyzers.tree_sitter_analyzer import extract_sql_structure
+                    tables, queries = extract_sql_structure(tree, content)
+                    # For SQL, we might store these in imports/functions just to reuse the schema
+                    imports = [f"table={t}" for t in tables]
+                    functions = queries
+                elif file_path.endswith((".yaml", ".yml")):
+                    from ..analyzers.tree_sitter_analyzer import extract_yaml_structure
+                    keys = extract_yaml_structure(tree, content)
+                    imports = [f"key={k}" for k in keys]
+        except Exception as e:
+            import logging
+            logging.error(f"Surveyor AST extraction failed for {file_path}: {e}")
 
         return ModuleNode(
             id=rel_path,
