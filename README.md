@@ -17,7 +17,7 @@ This project uses `uv` for fast dependency management.
 
 1. Clone this repository:
    ```bash
-   git clone <repository_url>
+   git clone https://github.com/martha-ketsela-mengistu/brownfield-cartographer.git
    cd brownfield-cartographer
    ```
 
