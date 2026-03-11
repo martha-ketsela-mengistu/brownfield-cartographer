@@ -1,0 +1,153 @@
+{
+  "directed": true,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "id": "stg_customers"
+    },
+    {
+      "id": "customers"
+    },
+    {
+      "id": "stg_locations"
+    },
+    {
+      "id": "locations"
+    },
+    {
+      "id": "stg_orders"
+    },
+    {
+      "id": "orders"
+    },
+    {
+      "id": "order_items"
+    },
+    {
+      "id": "stg_supplies"
+    },
+    {
+      "id": "stg_products"
+    },
+    {
+      "id": "stg_order_items"
+    },
+    {
+      "id": "products"
+    },
+    {
+      "id": "supplies"
+    },
+    {
+      "id": "ecom_raw_customers"
+    },
+    {
+      "id": "ecom_raw_stores"
+    },
+    {
+      "id": "ecom_raw_orders"
+    },
+    {
+      "id": "ecom_raw_items"
+    },
+    {
+      "id": "ecom_raw_products"
+    },
+    {
+      "id": "ecom_raw_supplies"
+    }
+  ],
+  "edges": [
+    {
+      "type": "sql",
+      "file_path": "models\\marts\\customers.sql",
+      "source": "stg_customers",
+      "target": "customers"
+    },
+    {
+      "type": "sql",
+      "file_path": "models\\marts\\locations.sql",
+      "source": "stg_locations",
+      "target": "locations"
+    },
+    {
+      "type": "sql",
+      "file_path": "models\\marts\\orders.sql",
+      "source": "stg_orders",
+      "target": "orders"
+    },
+    {
+      "type": "sql",
+      "file_path": "models\\marts\\order_items.sql",
+      "source": "stg_orders",
+      "target": "order_items"
+    },
+    {
+      "type": "sql",
+      "file_path": "models\\marts\\order_items.sql",
+      "source": "stg_supplies",
+      "target": "order_items"
+    },
+    {
+      "type": "sql",
+      "file_path": "models\\marts\\supplies.sql",
+      "source": "stg_supplies",
+      "target": "supplies"
+    },
+    {
+      "type": "sql",
+      "file_path": "models\\marts\\order_items.sql",
+      "source": "stg_products",
+      "target": "order_items"
+    },
+    {
+      "type": "sql",
+      "file_path": "models\\marts\\products.sql",
+      "source": "stg_products",
+      "target": "products"
+    },
+    {
+      "type": "sql",
+      "file_path": "models\\marts\\order_items.sql",
+      "source": "stg_order_items",
+      "target": "order_items"
+    },
+    {
+      "type": "sql",
+      "file_path": "models\\staging\\stg_customers.sql",
+      "source": "ecom_raw_customers",
+      "target": "stg_customers"
+    },
+    {
+      "type": "sql",
+      "file_path": "models\\staging\\stg_locations.sql",
+      "source": "ecom_raw_stores",
+      "target": "stg_locations"
+    },
+    {
+      "type": "sql",
+      "file_path": "models\\staging\\stg_orders.sql",
+      "source": "ecom_raw_orders",
+      "target": "stg_orders"
+    },
+    {
+      "type": "sql",
+      "file_path": "models\\staging\\stg_order_items.sql",
+      "source": "ecom_raw_items",
+      "target": "stg_order_items"
+    },
+    {
+      "type": "sql",
+      "file_path": "models\\staging\\stg_products.sql",
+      "source": "ecom_raw_products",
+      "target": "stg_products"
+    },
+    {
+      "type": "sql",
+      "file_path": "models\\staging\\stg_supplies.sql",
+      "source": "ecom_raw_supplies",
+      "target": "stg_supplies"
+    }
+  ]
+}

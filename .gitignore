@@ -8,3 +8,5 @@ target_repo/
 .cursor
 .agent
 .antigravity
+__pycache__/
+lib/
