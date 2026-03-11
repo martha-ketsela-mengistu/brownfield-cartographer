@@ -2,71 +2,65 @@ import os
 import json
 import typer
 import networkx as nx
-from .agents.surveyor import SurveyorAgent
-from .graph.knowledge_graph import KnowledgeGraphManager
-from .agents.hydrologist import HydrologistAgent
-from .graph.visualizer import GraphVisualizer
+import git
+import shutil
+import tempfile
+from .orchestrator import Orchestrator
 
 app = typer.Typer()
 
+def is_github_url(path: str) -> bool:
+    return path.startswith("https://github.com/") or path.endswith(".git")
+
+def clone_repo(url: str) -> str:
+    temp_dir = tempfile.mkdtemp(prefix="cartographer_")
+    print(f"Cloning {url} into {temp_dir}...")
+    git.Repo.clone_from(url, temp_dir)
+    return temp_dir
+
 @app.command(name="analyze")
-def analyze(repo_path: str = typer.Argument(".")):
+def analyze(path: str = typer.Argument(".", help="Local path or GitHub URL to analyze")):
     """
     Run full analysis on the target repository.
     """
-    abs_repo_path = os.path.abspath(repo_path)
-    print(f"Analyzing repository: {abs_repo_path}")
-    
-    kg_manager = KnowledgeGraphManager()
-    
-    # 1. Surveyor (Static Structure)
-    print("\n--- Phase 1: Surveyor (Static Structure) ---")
-    surveyor = SurveyorAgent(abs_repo_path)
-    count = 0
-    for root, dirs, files in os.walk(repo_path):
-        dirs[:] = [d for d in dirs if d not in [".git", "__pycache__", ".venv", ".cartography", ".antigravity", ".specify"]]
-        for file in files:
-            if file.endswith((".py", ".sql", ".yaml", ".yml")):
-                file_path = os.path.join(root, file)
-                node = surveyor.analyze_module(file_path)
-                kg_manager.add_module(node)
-                count += 1
-    print(f"Processed {count} modules.")
+    cleanup_needed = False
+    repo_path = path
 
-    # 2. Hydrologist (Data Lineage)
-    print("\n--- Phase 2: Hydrologist (Data Lineage) ---")
-    hydrologist = HydrologistAgent(abs_repo_path, kg_manager)
-    hydrologist.analyze_lineage()
-    print(f"Lineage graph built with {len(kg_manager.lineage_graph.edges)} edges.")
+    if is_github_url(path):
+        repo_path = clone_repo(path)
+        cleanup_needed = True
 
-    # Compute PageRank
-    print("\nComputing PageRank...")
-    pagerank = kg_manager.compute_pagerank()
-    sorted_pr = sorted(pagerank.items(), key=lambda x: x[1], reverse=True)
-    print("\nTop 5 PageRank Hubs:")
-    for path, score in sorted_pr[:5]:
-        print(f"  {path}: {score:.4f}")
-
-    # Serialize
-    kg_manager.serialize(".cartography/module_graph.json")
-    kg_manager.serialize_lineage(".cartography/lineage_graph.json")
-    print("\nSerialized graphs to .cartography/")
-
-    # Visualize
-    print("\nGenerating visualizations...")
-    GraphVisualizer.visualize_graph(kg_manager.graph, ".cartography/visualizations/module_graph.html", "Module Graph")
-    GraphVisualizer.visualize_graph(kg_manager.lineage_graph, ".cartography/visualizations/lineage_graph.html", "Lineage Graph")
+    try:
+        orchestrator = Orchestrator(repo_path)
+        results = orchestrator.run_analysis()
+        
+        print("\n--- Analysis Summary ---")
+        print(f"Modules Processed: {results['module_count']}")
+        print(f"Lineage Edges:      {results['lineage_edges']}")
+        print("\nTop 5 PageRank Hubs:")
+        for hub, score in results['top_hubs']:
+            print(f"  {hub}: {score:.4f}")
+            
+    finally:
+        if cleanup_needed and os.path.exists(repo_path):
+            print(f"Cleaning up temporary directory: {repo_path}")
+            import stat
+            def remove_readonly(func, path, _):
+                os.chmod(path, stat.S_IWRITE)
+                func(path)
+            shutil.rmtree(repo_path, onerror=remove_readonly)
 
 @app.command(name="blast-radius")
 def blast_radius(node_id: str):
     """
     Identify downstream blast radius of a transformation or dataset.
     """
-    if not os.path.exists(".cartography/lineage_graph.json"):
+    graph_path = ".cartography/lineage_graph.json"
+    if not os.path.exists(graph_path):
         print("Lineage graph not found. Run 'analyze' first.")
         return
 
-    with open(".cartography/lineage_graph.json", "r") as f:
+    with open(graph_path, "r") as f:
         data = json.load(f)
     graph = nx.node_link_graph(data)
     
@@ -84,11 +78,12 @@ def trace_lineage(dataset: str):
     """
     Trace upstream sources for a dataset.
     """
-    if not os.path.exists(".cartography/lineage_graph.json"):
+    graph_path = ".cartography/lineage_graph.json"
+    if not os.path.exists(graph_path):
         print("Lineage graph not found. Run 'analyze' first.")
         return
 
-    with open(".cartography/lineage_graph.json", "r") as f:
+    with open(graph_path, "r") as f:
         data = json.load(f)
     graph = nx.node_link_graph(data)
     
