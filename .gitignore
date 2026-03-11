@@ -1,0 +1,10 @@
+target_repo/
+.idea/
+.vscode/
+.DS_Store
+.env
+.specify/scripts
+.specify/templates
+.cursor
+.agent
+.antigravity
