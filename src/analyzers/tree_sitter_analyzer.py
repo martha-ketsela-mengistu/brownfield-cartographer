@@ -41,7 +41,7 @@ def analyze_ast(file_path: str):
     router = LanguageRouter()
     parser = router.get_parser(file_path)
     if not parser:
-        return None
+        return None, None
 
     try:
         with open(file_path, "rb") as f:
