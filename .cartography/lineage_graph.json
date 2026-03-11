@@ -22,9 +22,6 @@
       "id": "orders"
     },
     {
-      "id": "stg_order_items"
-    },
-    {
       "id": "order_items"
     },
     {
@@ -32,6 +29,9 @@
     },
     {
       "id": "stg_products"
+    },
+    {
+      "id": "stg_order_items"
     },
     {
       "id": "products"
@@ -86,12 +86,6 @@
     {
       "type": "sql",
       "file_path": "models\\marts\\order_items.sql",
-      "source": "stg_order_items",
-      "target": "order_items"
-    },
-    {
-      "type": "sql",
-      "file_path": "models\\marts\\order_items.sql",
       "source": "stg_supplies",
       "target": "order_items"
     },
@@ -112,6 +106,12 @@
       "file_path": "models\\marts\\products.sql",
       "source": "stg_products",
       "target": "products"
+    },
+    {
+      "type": "sql",
+      "file_path": "models\\marts\\order_items.sql",
+      "source": "stg_order_items",
+      "target": "order_items"
     },
     {
       "type": "sql",
