@@ -1,20 +1,31 @@
 # Five FDE Day-One Answers
 
-## 1. What is the primary data ingestion path? (How does data enter the system?)
-Data enters via raw tables defined in the `ecom` schema (e.g., `rawcustomers`, `raworders`) as configured in **`models\staging\__sources.yml`**. These sources are ingested by staging models (**`models\staging\stg_*.sql`**) which perform initial cleaning. For local development and testing, synthetic data is generated and seeded into the database (default: BigQuery) using the **`Taskfile.yml`** automation pipeline (`jafgen`).
+## 1. What is the primary data ingestion path?
+Data enters the system through raw tables defined in the `ecom` schema, which are then transformed by dbt.
+*   **Production Definition:** Logical sources are configured in `models\staging\__sources.yml`, pointing to tables like `rawcustomers`, `raworders`, and `rawitems` within the `raw` schema.
+*   **Local/Dev Mechanism:** The `Taskfile.yml` orchestrates local ingestion by generating synthetic seed data for `jaffle-data` and loading it into the database via the `dbt seed` command, ensuring reproducibility for development.
 
-## 2. What are the 3-5 most critical output datasets/endpoints? (What provides value?)
-The highest business value resides in the Loyalty domain marts, which aggregate cleaned staging data for analytics:
-1.  **`models\marts\customers.sql`**: Customer lifetime value and behavior summary (Domain: Loyalty).
-2.  **`models\marts\orders.sql`**: Enriched order dataset with cost aggregation and categorization (Domain: Loyalty).
-3.  **`models\marts\order_items.sql`**: Granular transaction view linking orders to products (Domain: Loyalty).
-These models are backed by semantic definitions in their corresponding **`*.yml`** files for BI consumption.
+## 2. What are the 3-5 most critical output datasets/endpoints?
+The highest value assets are the aggregated mart tables used for analytics and revenue segmentation.
+*   **`models\marts\customers.sql`:** Calculates customer lifetime value (LTV), total spend, and retention status (new vs. returning).
+*   **`models\marts\orders.sql`:** Enriches order records with financial dimensions (total cost, tax) and categorical flags (food/drink).
+*   **`models\marts\order_items.sql`:** Provides granular transaction-level data linking orders to products and supply costs.
+*   **`models\marts\metricflow_time_spine.sql`:** Foundational date table required for time-based aggregations and metric continuity.
 
-## 3. What is the blast radius if the most critical module fails? (What breaks downstream?)
-Failure in **`macros\cents_to_dollars.sql`** has the widest blast radius. This macro is called by multiple staging models (**`models\staging\stg_orders.sql`**, **`models\staging\stg_products.sql`**, **`models\staging\stg_supplies.sql`**). A break here corrupts monetary calculations across all three streams, cascading failure to all downstream Loyalty marts (**`customers`**, **`orders`**, **`order_items`**) due to the 18-node lineage dependency chain.
+## 3. What is the blast radius if the most critical module fails?
+A failure in **`models\staging\stg_orders.sql`** would cascade to three downstream marts, halting core revenue analytics.
+*   **Direct Impact:** Breaks `models\marts\orders.sql` and `models\marts\order_items.sql` as they directly depend on staged order data.
+*   **Indirect Impact:** Breaks `models\marts\customers.sql`, which aggregates order history to calculate lifetime spend and purchase frequency.
+*   **Evidence:** The lineage graph (18 nodes, 17 edges) indicates a tight coupling between staging and marts, and `stg_orders.sql` is marked with `Drift: True`, indicating it is a active change point.
 
-## 4. Where is the business logic concentrated vs. distributed? (Is it in SQL, Python, or config?)
-Business transformation logic is **concentrated in SQL** within the `models/` directory (e.g., **`models\staging\stg_orders.sql`** handles currency conversion and date truncation). Configuration and testing logic are **distributed in YAML** (**`dbt_project.yml`**, **`models\**\*.yml`**). Orchestration and CI/CD logic are **isolated in Python** and GitHub Actions (**`.github\workflows\scripts\dbt_cloud_run_job.py`**, **`.github\workflows\ci.yml`**).
+## 4. Where is the business logic concentrated vs. distributed?
+Business logic is **distributed** across SQL models for transformation, but **concentrated** in macros for utilities and Python for orchestration.
+*   **Distributed (SQL):** Transformation logic (e.g., currency conversion, flagging food/drink items) is embedded within models like `models\staging\stg_orders.sql` and `models\staging\stg_products.sql`.
+*   **Concentrated (Macros):** Reusable utilities like currency conversion are centralized in `macros\cents_to_dollars.sql` to ensure consistency across dialects (PostgreSQL, BigQuery, etc.).
+*   **Concentrated (Python):** CI/CD orchestration logic is isolated in `.github\workflows\scripts\dbt_cloud_run_job.py`, handling job triggering and status polling.
 
-## 5. What has changed most frequently in the last 90 days? (Based on git velocity patterns)
-The **Staging Layer** shows the highest change velocity. Analysis flags indicate **`Drift: True`** for 11 files, predominantly in **`models\staging\`** (e.g., **`stg_customers.sql`**, **`stg_orders.sql`**, **`stg_supplies.yml`**). This suggests active refinement of data ingestion, cleaning logic, and schema definitions compared to the more stable Mart and Configuration layers.
+## 5. What has changed most frequently in the last 90 days?
+Based on `Drift: True` markers in the module samples, the **Staging Layer** and **CI/CD Orchestration** show the highest velocity.
+*   **Staging Models:** `models\staging\stg_orders.sql`, `models\staging\stg_customers.sql`, and `models\staging\stg_supplies.yml` are marked with drift, suggesting frequent schema or logic adjustments in the ingestion layer.
+*   **Orchestration Script:** `.github\workflows\scripts\dbt_cloud_run_job.py` is marked with `Drift: True`, indicating active iteration on the deployment pipeline logic.
+*   **Stable Areas:** Core macros (`macros\cents_to_dollars.sql`) and project config (`dbt_project.yml`) show `Drift: False`, indicating stability in foundational utilities.

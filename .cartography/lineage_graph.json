@@ -4,13 +4,13 @@
   "graph": {},
   "nodes": [
     {
-      "id": "stg_customers"
+      "id": "orders"
     },
     {
       "id": "customers"
     },
     {
-      "id": "orders"
+      "id": "stg_customers"
     },
     {
       "id": "stg_locations"
@@ -25,13 +25,13 @@
       "id": "order_items"
     },
     {
+      "id": "stg_supplies"
+    },
+    {
       "id": "stg_products"
     },
     {
       "id": "stg_order_items"
-    },
-    {
-      "id": "stg_supplies"
     },
     {
       "id": "products"
@@ -62,13 +62,13 @@
     {
       "type": "sql",
       "file_path": "models\\marts\\customers.sql",
-      "source": "stg_customers",
+      "source": "orders",
       "target": "customers"
     },
     {
       "type": "sql",
       "file_path": "models\\marts\\customers.sql",
-      "source": "orders",
+      "source": "stg_customers",
       "target": "customers"
     },
     {
@@ -98,6 +98,18 @@
     {
       "type": "sql",
       "file_path": "models\\marts\\order_items.sql",
+      "source": "stg_supplies",
+      "target": "order_items"
+    },
+    {
+      "type": "sql",
+      "file_path": "models\\marts\\supplies.sql",
+      "source": "stg_supplies",
+      "target": "supplies"
+    },
+    {
+      "type": "sql",
+      "file_path": "models\\marts\\order_items.sql",
       "source": "stg_products",
       "target": "order_items"
     },
@@ -112,18 +124,6 @@
       "file_path": "models\\marts\\order_items.sql",
       "source": "stg_order_items",
       "target": "order_items"
-    },
-    {
-      "type": "sql",
-      "file_path": "models\\marts\\order_items.sql",
-      "source": "stg_supplies",
-      "target": "order_items"
-    },
-    {
-      "type": "sql",
-      "file_path": "models\\marts\\supplies.sql",
-      "source": "stg_supplies",
-      "target": "supplies"
     },
     {
       "type": "sql",
