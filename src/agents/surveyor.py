@@ -4,6 +4,7 @@ from typing import List, Dict, Any
 from datetime import datetime, timedelta
 from ..models.nodes import ModuleNode
 from ..analyzers.tree_sitter_analyzer import LanguageRouter, analyze_ast
+from ..utils.trace_logger import default_trace
 
 class SurveyorAgent:
     def __init__(self, repo_path: str):
@@ -82,6 +83,15 @@ class SurveyorAgent:
         except Exception as e:
             import logging
             logging.error(f"Surveyor AST extraction failed for {file_path}: {e}")
+
+        # Log action to trace
+        default_trace.log_action(
+            agent="Surveyor",
+            action="analyze_module",
+            evidence=f"AST parsing + Git log: {rel_path}",
+            confidence=0.9 if tree else 0.5,
+            metadata={"path": rel_path, "loc": loc, "functions": len(functions)}
+        )
 
         return ModuleNode(
             id=rel_path,

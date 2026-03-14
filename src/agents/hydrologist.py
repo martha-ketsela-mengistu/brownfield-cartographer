@@ -4,6 +4,7 @@ from ..analyzers.sql_lineage import SQLLineageAnalyzer
 from ..analyzers.python_data_flow import PythonDataFlowAnalyzer
 from ..analyzers.dag_config_parser import DAGConfigAnalyzer
 from ..graph.knowledge_graph import KnowledgeGraphManager
+from ..utils.trace_logger import default_trace
 
 class HydrologistAgent:
     def __init__(self, repo_path: str, kg_manager: KnowledgeGraphManager):
@@ -55,3 +56,12 @@ class HydrologistAgent:
         for tgt in targets:
             for src in sources:
                 self.kg_manager.add_lineage(src, tgt, trans_type, file_path)
+                
+        # Log to trace
+        default_trace.log_action(
+            agent="Hydrologist",
+            action="extract_lineage",
+            evidence=f"{trans_type} analyzer on {file_path}",
+            confidence=0.85,
+            metadata={"sources": sources, "targets": targets, "path": file_path}
+        )

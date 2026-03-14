@@ -11,6 +11,7 @@ from sklearn.cluster import KMeans
 from sentence_transformers import SentenceTransformer
 from ..models.nodes import ModuleNode
 from ..models.semantic import ContextWindowBudget, SemanticAnalysisResult
+from ..utils.trace_logger import default_trace
 
 # Load environment variables from .env
 load_dotenv()
@@ -197,6 +198,15 @@ DriftReason: [Brief explanation if Yes]
             metadatas=[{"path": node.path, "is_drift": bool(is_drift)}]
         )
         
+        # Log to trace
+        default_trace.log_action(
+            agent="Semanticist",
+            action="generate_purpose",
+            evidence=f"LLM inference ({self.llm.model_bulk}) + implementation analysis",
+            confidence=0.8,
+            metadata={"path": node.path, "is_drift": bool(is_drift), "model": self.llm.model_bulk}
+        )
+
         return SemanticAnalysisResult(
             module_id=node.id,
             purpose_statement=purpose,
@@ -239,6 +249,16 @@ DriftReason: [Brief explanation if Yes]
 
         # Map back to human names
         final_mapping = {mid: cluster_summaries[domain] for mid, domain in results.items()}
+        
+        # Log to trace
+        default_trace.log_action(
+            agent="Semanticist",
+            action="cluster_domains",
+            evidence=f"K-Means + LLM labeling ({self.llm.model_bulk})",
+            confidence=0.75,
+            metadata={"n_clusters": n_clusters, "mapping": final_mapping}
+        )
+        
         return final_mapping
 
     def generate_day_one_brief(self, kg_manager) -> str:

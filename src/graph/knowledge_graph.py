@@ -12,7 +12,13 @@ class KnowledgeGraphManager:
         self.lineage_graph = nx.DiGraph()
 
     def add_module(self, node: ModuleNode):
+        # Remove existing module with same ID if it exists (for incremental updates)
+        self.data_store.modules = [m for m in self.data_store.modules if m.id != node.id]
         self.data_store.modules.append(node)
+        
+        # Update graph node
+        if node.id in self.graph:
+            self.graph.remove_node(node.id)
         self.graph.add_node(node.id, **node.model_dump(mode='json'))
         
         # Add edges for imports
@@ -64,3 +70,25 @@ class KnowledgeGraphManager:
     def save_knowledge_graph(self, output_path: str):
         with open(output_path, "w") as f:
             f.write(self.data_store.model_dump_json(indent=2))
+
+    def deserialize(self, input_path: str):
+        with open(input_path, "r") as f:
+            data = json.load(f)
+        self.graph = nx.node_link_graph(data)
+        
+        # Reconstruct data_store.modules from graph nodes
+        self.data_store.modules = []
+        for node_id, data in self.graph.nodes(data=True):
+            # Convert graph data back to ModuleNode
+            # Filter out NetworkX specific internal keys if any
+            node_data = {k: v for k, v in data.items() if not k.startswith("_")}
+            try:
+                self.data_store.modules.append(ModuleNode(**node_data))
+            except Exception as e:
+                import logging
+                logging.error(f"Failed to deserialize module {node_id}: {e}")
+
+    def deserialize_lineage(self, input_path: str):
+        with open(input_path, "r") as f:
+            data = json.load(f)
+        self.lineage_graph = nx.node_link_graph(data)
