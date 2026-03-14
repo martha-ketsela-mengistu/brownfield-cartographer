@@ -15,12 +15,18 @@ class SQLLineageAnalyzer:
         sources = set()
         targets = set()
         
-        # Pre-process dbt templates
-        # {{ ref('name') }} -> name
+        # Explicitly extract dbt refs and sources (definitive dependencies)
+        dbt_refs = re.findall(r"\{\{\s*ref\(['\"](\w+)['\"]\)\s*\}\}", sql_content)
+        for ref in dbt_refs:
+            sources.add(ref)
+            
+        dbt_sources = re.findall(r"\{\{\s*source\(['\"](\w+)['\"]\s*,\s*['\"](\w+)['\"]\)\s*\}\}", sql_content)
+        for src, table in dbt_sources:
+            sources.add(f"{src}_{table}")
+
+        # Pre-process dbt templates to satisfy parser for other SQL dependencies
         processed_sql = re.sub(r"\{\{\s*ref\(['\"](\w+)['\"]\)\s*\}\}", r"\1", sql_content)
-        # {{ source('src', 'table') }} -> src_table
         processed_sql = re.sub(r"\{\{\s*source\(['\"](\w+)['\"]\s*,\s*['\"](\w+)['\"]\)\s*\}\}", r"\1_\2", processed_sql)
-        # Remove other jinja tags to satisfy parser
         processed_sql = re.sub(r"\{%.*?%\}", "", processed_sql)
         processed_sql = re.sub(r"\{\{.*?\}\}", "placeholder_table", processed_sql)
 
@@ -30,6 +36,8 @@ class SQLLineageAnalyzer:
                 # Find tables in FROM and JOIN
                 for table in expression.find_all(exp.Table):
                     table_name = table.sql(dialect=self.dialect)
+                    # Only add if we didn't already explicitly capture it as a dbt ref, and if it's not a CTE
+                    # (Simplified for now, we'll just add it and then remove CTEs)
                     sources.add(table_name)
                 
                 # Find target table in INSERT INTO or CREATE TABLE
@@ -38,17 +46,13 @@ class SQLLineageAnalyzer:
                     if target_table:
                         targets.add(target_table.sql(dialect=self.dialect))
                         
-                # Handle CTEs: remove CTE names from sources
+                # Handle CTEs: remove CTE names from sources ONLY IF they aren't explicit dbt refs
                 ctes = {cte.alias_or_name for cte in expression.find_all(exp.CTE)}
-                sources = sources - ctes
+                sources = (sources - ctes).union(set(dbt_refs)).union({f"{src}_{tbl}" for src, tbl in dbt_sources})
+                
         except Exception as e:
-            # If sqlglot fails, fallback to regex for dbt specifically
-            dbt_refs = re.findall(r"\{\{\s*ref\(['\"](\w+)['\"]\)\s*\}\}", sql_content)
-            for ref in dbt_refs:
-                sources.add(ref)
-            dbt_sources = re.findall(r"\{\{\s*source\(['\"](\w+)['\"]\s*,\s*['\"](\w+)['\"]\)\s*\}\}", sql_content)
-            for src, table in dbt_sources:
-                sources.add(f"{src}_{table}")
+            # Fallback already handled by regex above
+            pass
             
         return {
             "sources": list(sources),

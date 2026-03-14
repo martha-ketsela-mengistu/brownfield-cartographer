@@ -10,6 +10,9 @@
       "id": "customers"
     },
     {
+      "id": "orders"
+    },
+    {
       "id": "stg_locations"
     },
     {
@@ -19,19 +22,16 @@
       "id": "stg_orders"
     },
     {
-      "id": "orders"
-    },
-    {
       "id": "order_items"
-    },
-    {
-      "id": "stg_supplies"
     },
     {
       "id": "stg_products"
     },
     {
       "id": "stg_order_items"
+    },
+    {
+      "id": "stg_supplies"
     },
     {
       "id": "products"
@@ -67,6 +67,12 @@
     },
     {
       "type": "sql",
+      "file_path": "models\\marts\\customers.sql",
+      "source": "orders",
+      "target": "customers"
+    },
+    {
+      "type": "sql",
       "file_path": "models\\marts\\locations.sql",
       "source": "stg_locations",
       "target": "locations"
@@ -85,15 +91,9 @@
     },
     {
       "type": "sql",
-      "file_path": "models\\marts\\order_items.sql",
-      "source": "stg_supplies",
-      "target": "order_items"
-    },
-    {
-      "type": "sql",
-      "file_path": "models\\marts\\supplies.sql",
-      "source": "stg_supplies",
-      "target": "supplies"
+      "file_path": "models\\marts\\orders.sql",
+      "source": "order_items",
+      "target": "orders"
     },
     {
       "type": "sql",
@@ -112,6 +112,18 @@
       "file_path": "models\\marts\\order_items.sql",
       "source": "stg_order_items",
       "target": "order_items"
+    },
+    {
+      "type": "sql",
+      "file_path": "models\\marts\\order_items.sql",
+      "source": "stg_supplies",
+      "target": "order_items"
+    },
+    {
+      "type": "sql",
+      "file_path": "models\\marts\\supplies.sql",
+      "source": "stg_supplies",
+      "target": "supplies"
     },
     {
       "type": "sql",

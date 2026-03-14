@@ -38,13 +38,43 @@ class SurveyorAgent:
             if tree and content:
                 if file_path.endswith(".py"):
                     from ..analyzers.tree_sitter_analyzer import extract_python_structure
-                    imports, functions, classes = extract_python_structure(tree, content)
+                    # Use tree-sitter for imports (easier to find in AST)
+                    imports, _, _ = extract_python_structure(tree, content)
+                    
+                    # Use Jedi for deep semantics (signatures, docstrings)
+                    import jedi
+                    try:
+                        script = jedi.Script(code=content.decode("utf-8"), path=file_path)
+                        names = script.get_names(all_scopes=True, definitions=True)
+                        
+                        for name in names:
+                            if name.type == "function":
+                                sigs = name.get_signatures()
+                                sig = sigs[0].to_string() if sigs else name.name + "()"
+                                functions.append({
+                                    "name": name.name,
+                                    "signature": sig,
+                                    "docstring": name.docstring() or None
+                                })
+                            elif name.type == "class":
+                                classes.append({
+                                    "name": name.name,
+                                    "signature": f"class {name.name}",
+                                    "docstring": name.docstring() or None
+                                })
+                    except Exception as jedi_e:
+                        import logging
+                        logging.warning(f"Jedi failed for {file_path}: {jedi_e}")
+                        # Fallback to tree-sitter for names if Jedi fails
+                        _, ts_funcs, ts_classes = extract_python_structure(tree, content)
+                        functions = [{"name": f, "signature": f, "docstring": None} for f in ts_funcs]
+                        classes = [{"name": c, "signature": c, "docstring": None} for c in ts_classes]
+                        
                 elif file_path.endswith(".sql"):
                     from ..analyzers.tree_sitter_analyzer import extract_sql_structure
                     tables, queries = extract_sql_structure(tree, content)
-                    # For SQL, we might store these in imports/functions just to reuse the schema
                     imports = [f"table={t}" for t in tables]
-                    functions = queries
+                    functions = [{"name": q, "signature": q, "docstring": None} for q in queries]
                 elif file_path.endswith((".yaml", ".yml")):
                     from ..analyzers.tree_sitter_analyzer import extract_yaml_structure
                     keys = extract_yaml_structure(tree, content)
