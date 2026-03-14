@@ -19,9 +19,12 @@ def clone_repo(url: str) -> str:
     return temp_dir
 
 @app.command(name="analyze")
-def analyze(path: str = typer.Argument(".", help="Local path or GitHub URL to analyze")):
+def analyze(
+    path: str = typer.Argument(".", help="Local path or GitHub URL to analyze"),
+    incremental: bool = typer.Option(False, "--incremental", "-i", help="Only analyze changed files since last run")
+):
     """
-    Run full analysis on the target repository.
+    Run full or incremental analysis on the target repository.
     """
     cleanup_needed = False
     repo_path = path
@@ -32,7 +35,7 @@ def analyze(path: str = typer.Argument(".", help="Local path or GitHub URL to an
 
     try:
         orchestrator = Orchestrator(repo_path)
-        results = orchestrator.run_analysis()
+        results = orchestrator.run_analysis(incremental=incremental)
         
         print("\n--- Analysis Summary ---")
         print(f"Modules Processed: {results['module_count']}")
@@ -50,59 +53,41 @@ def analyze(path: str = typer.Argument(".", help="Local path or GitHub URL to an
                 func(path)
             shutil.rmtree(repo_path, onerror=remove_readonly)
 
-@app.command(name="blast-radius")
-def blast_radius(node_id: str):
-    """
-    Identify downstream blast radius of a transformation or dataset.
-    """
-    graph_path = ".cartography/lineage_graph.json"
-    if not os.path.exists(graph_path):
-        print("Lineage graph not found. Run 'analyze' first.")
-        return
-
-    with open(graph_path, "r") as f:
-        data = json.load(f)
-    graph = nx.node_link_graph(data)
-    
-    if node_id not in graph:
-        print(f"Node {node_id} not found in lineage graph.")
-        return
-        
-    downstream = nx.descendants(graph, node_id)
-    print(f"\nBlast Radius for {node_id}:")
-    for d in downstream:
-        print(f"  -> {d}")
-
-@app.command(name="lineage")
-def trace_lineage(dataset: str):
-    """
-    Trace upstream sources for a dataset.
-    """
-    graph_path = ".cartography/lineage_graph.json"
-    if not os.path.exists(graph_path):
-        print("Lineage graph not found. Run 'analyze' first.")
-        return
-
-    with open(graph_path, "r") as f:
-        data = json.load(f)
-    graph = nx.node_link_graph(data)
-    
-    if dataset not in graph:
-        print(f"Dataset {dataset} not found in lineage graph.")
-        return
-        
-    upstream = nx.ancestors(graph, dataset)
-    print(f"\nUpstream Sources for {dataset}:")
-    for u in upstream:
-        print(f"  <- {u}")
-
 @app.command(name="query")
-def query(question: str):
+def query_graph(question: str):
     """
-    Query the codebase (Phase 4 Navigator).
+    Directly query the codebase knowledge graph using the Navigator agent.
     """
-    print(f"Querying: {question}")
-    print("Navigator not implemented yet.")
+    from .agents.navigator import NavigatorAgent, set_navigator_context
+    from .agents.semanticist import SemanticistAgent
+    from .orchestrator import Orchestrator
+    
+    # We need to load existing state
+    # Orchestrator's repo_path is just a dummy here as we expect .cartography to exist
+    orchestrator = Orchestrator(".") 
+    
+    graph_path = os.path.join(orchestrator.output_dir, "module_graph.json")
+    if not os.path.exists(graph_path):
+        print("Analysis artifacts not found. Please run 'analyze' first.")
+        return
+        
+    print(f"Loading knowledge graph and semantic index...")
+    orchestrator.kg_manager.deserialize(graph_path)
+    # Lineage too
+    lineage_path = os.path.join(orchestrator.output_dir, "lineage_graph.json")
+    if os.path.exists(lineage_path):
+        orchestrator.kg_manager.deserialize_lineage(lineage_path)
+        
+    semanticist = SemanticistAgent(orchestrator.repo_path)
+    set_navigator_context(orchestrator.kg_manager, semanticist)
+    
+    navigator = NavigatorAgent()
+    print(f"Navigator (GPT-OSS) Investigating: '{question}'...")
+    
+    response = navigator.query(question)
+    print("\n--- Navigator Response ---")
+    print(response)
+    print("\nActions audited to .cartography/cartography_trace.jsonl")
 
 if __name__ == "__main__":
     app()
