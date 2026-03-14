@@ -7,16 +7,20 @@ class ModuleNode(BaseModel):
     path: str
     language: str
     imports: List[str] = []
-    functions: List[str] = []
-    classes: List[str] = []
+    # Richer function/class info: list of dicts with {"name": ..., "signature": ..., "docstring": ...}
+    functions: List[Dict[str, Any]] = []
+    classes: List[Dict[str, Any]] = []
     loc: int
     comment_ratio: float
     change_frequency: int
     purpose_statement: Optional[str] = None
     domain_cluster: Optional[str] = None
+    is_doc_drift: bool = False
+    doc_drift_explanation: Optional[str] = None
     complexity_score: float = 0.0 # Cyclomatic complexity
     is_dead_code_candidate: bool = False
     last_modified: datetime = Field(default_factory=datetime.now)
+    metadata: Dict[str, Any] = {} # For flexible extensions (e.g. Jedi/Rope info)
 
 class DatasetNode(BaseModel):
     id: str
