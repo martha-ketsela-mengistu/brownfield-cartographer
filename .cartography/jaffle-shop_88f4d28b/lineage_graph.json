@@ -4,13 +4,13 @@
   "graph": {},
   "nodes": [
     {
-      "id": "stg_customers"
+      "id": "orders"
     },
     {
       "id": "customers"
     },
     {
-      "id": "orders"
+      "id": "stg_customers"
     },
     {
       "id": "stg_locations"
@@ -62,13 +62,13 @@
     {
       "type": "sql",
       "file_path": "models\\marts\\customers.sql",
-      "source": "stg_customers",
+      "source": "orders",
       "target": "customers"
     },
     {
       "type": "sql",
       "file_path": "models\\marts\\customers.sql",
-      "source": "orders",
+      "source": "stg_customers",
       "target": "customers"
     },
     {

@@ -28,13 +28,13 @@
       "loc": 14,
       "comment_ratio": 0.0,
       "change_frequency": 0,
-      "purpose_statement": "This `.pre-commit-config.yaml` defines a pre-commit hook pipeline that enforces code quality and formatting standards before each Git commit. It integrates YAML validation, file formatting (trailing whitespace, EOL fixes), requirements.txt consistency, and Python linting/formatting (via Ruff) to catch issues early in the development workflow.",
+      "purpose_statement": "This `.pre-commit-config.yaml` defines a pre-commit Git hook pipeline that enforces code quality and formatting standards before each commit. It integrates YAML validation, file formatting (trailing whitespace/end-of-file fixes), Python dependency file cleanup, and static analysis (via Ruff) to catch syntax errors and enforce style consistency across the codebase.",
       "domain_cluster": "DataOps",
       "is_doc_drift": false,
-      "doc_drift_explanation": "The provided docstring is completely absent, making it impossible to compare. While the code clearly implements a pre-commit hook configuration (not a \"module\" in the traditional sense), the lack of any documentation means the purpose cannot be validated against a docstring. This violates best practices for maintainability and discoverability.",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "The provided DOCSTRING is completely absent, making it impossible to compare against the code\u2019s explicit logic. The file\u2019s purpose is fully derivable from the configuration alone (hooks, repos, and args), but the lack of any documentation means there\u2019s no baseline to assess drift. The code\u2019s logic is highly specific (e.g., version pins, hook IDs, and Ruff\u2019s strict formatting checks), while the absence of a docstring creates a critical documentation gap.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:20.271815",
+      "last_modified": "2026-03-15T00:30:47.355268",
       "metadata": {}
     },
     {
@@ -76,13 +76,13 @@
       "loc": 38,
       "comment_ratio": 0.0,
       "change_frequency": 0,
-      "purpose_statement": "This `dbtproject.yml` configures a dbt (data build tool) project named jaffleshop (v3.0.0) to transform raw data into analytical views/tables via a modular staging (`+materialized: view`) and marts (`+materialized: table`) structure. It enforces time-zone consistency (`America/LosAngeles`) for date operations, conditionally loads source data via a variable (`loadsourcedata`), and organizes assets (models, seeds, tests) into standardized paths while targeting a `raw` schema for seeds and a `target` directory for artifacts.",
+      "purpose_statement": "This `dbtproject.yml` configures a dbt (data build tool) project named \"jaffleshop\" (v3.0.0) to transform raw data into structured analytics-ready tables/views. It defines a modular schema with a staging layer (views) for initial data cleaning and a marts layer (tables) for optimized analytical models, while controlling data loading via variables (e.g., `loadsourcedata`) and enforcing a timezone constraint (America/LosAngeles) for temporal consistency.",
       "domain_cluster": "DataOps",
       "is_doc_drift": false,
-      "doc_drift_explanation": "The absence of a docstring (empty or missing) contrasts sharply with the code\u2019s explicit purpose\u2014this project is a production-grade dbt project with versioned models, conditional data loading, and schema/materialization rules. The lack of any documentation (even generic) makes it impossible to infer intent from context alone, violating best practices for maintainability. The code\u2019s specificity (e.g., `dbtdate:timezone`, `+materialized` directives) demands documentation to clarify design choices.",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "The absence of a docstring (empty or missing) contrasts sharply with the highly specific code logic, which reveals:\n1. Project scope (jaffleshop domain, versioned pipelines).\n2. Layered architecture (staging/marts with explicit materialization).\n3. Runtime controls (variable-driven seed loading, timezone enforcement).\nA generic docstring would fail to capture these technical and operational details.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:20.388655",
+      "last_modified": "2026-03-15T00:30:47.403823",
       "metadata": {}
     },
     {
@@ -104,13 +104,13 @@
       "loc": 8,
       "comment_ratio": 0.0,
       "change_frequency": 0,
-      "purpose_statement": "This `package-lock.yml` file explicitly pins dependencies for a dbt (data build tool) project, locking versions of core utility packages (`dbtutils`, `dbtdate`) and a custom Git-based dependency (`dbt-audit-helper`). It ensures reproducible builds by fixing exact versions (or commit hashes) of third-party and internal dbt macros/plugins, preventing version drift during dependency resolution.",
+      "purpose_statement": "This `package-lock.yml` file serves as a dependency lockfile for a dbt (data build tool) project, explicitly pinning versions of three third-party packages (`dbtutils`, `dbtdate`) and a custom Git repository (`dbt-audit-helper`). It ensures reproducible builds by fixing exact versions (or commit hashes) of dependencies, preventing version drift during deployments or CI/CD pipelines.",
       "domain_cluster": "DataOps",
       "is_doc_drift": false,
-      "doc_drift_explanation": "The file lacks any docstring, which is unusual for a configuration file that governs critical dependency management. While the code logic is clear (version pinning), the absence of documentation violates best practices for maintainability, especially in collaborative environments where future developers might need context on why these specific versions are locked (e.g., compatibility with a particular dbt version or bug fixes). The \"DOCSTRING\" placeholder is effectively empty, making it misleadingly generic.",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "N/A\n(The file lacks a docstring, so no comparison is possible. The code logic\u2014locking specific package versions\u2014is self-explanatory and aligns with standard dbt tooling conventions.)",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:20.425098",
+      "last_modified": "2026-03-15T00:30:47.447833",
       "metadata": {}
     },
     {
@@ -131,13 +131,13 @@
       "loc": 7,
       "comment_ratio": 0.0,
       "change_frequency": 0,
-      "purpose_statement": "This `packages.yml` file defines a dbt (data build tool) dependency management configuration that specifies three external packages to include in a dbt project:\n1. `dbtutils` (v1.3.3) for utility functions (e.g., type casting, string manipulation, and data validation helpers),\n2. `dbtdate` (v0.17.1) for date/time operations (e.g., date partitioning, time-based filtering, and calendar logic),\n3. A custom Git repository (`dbt-audit-helper`) from `dbt-labs` (tracked at `main` branch) likely for audit-related macros or models (e.g., data lineage, compliance checks, or access control logic).\nThe file acts as a dependency manifest to ensure these packages are installed and version-controlled in the dbt project.\n\n---",
+      "purpose_statement": "This `packages.yml` configuration file defines a dbt (data build tool) project\u2019s dependency management for three third-party packages: `dbtutils` (for utility functions and macros), `dbtdate` (for date handling utilities), and a custom Git repository (`dbt-audit-helper`)\u2014likely a proprietary or experimental tool for audit-related data transformations or validation. The file explicitly pins versions to ensure reproducibility across environments.",
       "domain_cluster": "DataOps",
       "is_doc_drift": false,
-      "doc_drift_explanation": "The provided DOCSTRING is entirely absent, which is misleading because:\n1. The code\u2019s purpose is explicit (dependency management for dbt packages), but no documentation exists to explain why these specific packages are included or their roles in the project.\n2. Without a docstring, users cannot infer the business logic context (e.g., whether `dbtaudithelper` is for compliance, `dbtdate` for analytics, etc.) or the rationale behind version pins (e.g., stability vs. feature needs).\n3. This violates best practices for configuration files, which should at least describe the intent of included dependencies (e.g., \"This file pins utility packages for data validation and audit trails\").",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "N/A \u2013 The code logic (package declarations) is self-explanatory and aligns with its documented purpose (dependency management). No docstring exists, so no comparison is possible, but the absence of drift is confirmed by the code\u2019s clarity.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:20.462790",
+      "last_modified": "2026-03-15T00:30:47.492601",
       "metadata": {}
     },
     {
@@ -174,13 +174,13 @@
       "loc": 40,
       "comment_ratio": 0.0,
       "change_frequency": 0,
-      "purpose_statement": "This `Taskfile.yml` automates the setup and execution of a dbt (data build tool) workflow for a Jaffle Shop analytics project. It creates a Python virtual environment, installs dependencies (including `dbt-core` and a database adapter like `dbt-bigquery`), generates synthetic seed data for `jaffle-data`, loads it into the database via `dbt seed`, and optionally cleans up intermediate files. The `load` task orchestrates the full pipeline (venv \u2192 install \u2192 generate \u2192 seed \u2192 clean).",
-      "domain_cluster": "DataOps",
+      "purpose_statement": "This `Taskfile.yml` automates the setup, execution, and cleanup of a data engineering pipeline for generating synthetic datasets (jaffle-shop data) and loading them into a BigQuery database using dbt (data build tool). It creates a Python virtual environment, installs dependencies (including dbt-core and a BigQuery adapter), generates synthetic data for 6 years, seeds it into a `seeds/` directory, and optionally uninstalls dbt afterward. The `load` task orchestrates the full workflow.",
+      "domain_cluster": "dbtOps",
       "is_doc_drift": false,
-      "doc_drift_explanation": "The docstring is entirely absent, which is misleading given the code\u2019s specific purpose. While the code clearly defines a dbt-based analytics pipeline with Jaffle Shop data generation, the lack of any documentation (even a placeholder) creates ambiguity about the tool\u2019s role, dependencies, or expected inputs/outputs. This violates best practices for maintainability.",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "The provided docstring is completely absent, making it impossible to compare. While the code clearly defines a specific pipeline for dbt + BigQuery data generation/loading, there is no documentation to validate, contradict, or align with\u2014rendering any \"drift\" analysis purely about the absence of documentation rather than its content. The code\u2019s purpose is explicitly detailed in its logic (e.g., `jafgen`, `dbt seed`, `dbt-{{.DB}}`), but the lack of a docstring creates a critical documentation gap.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:20.524291",
+      "last_modified": "2026-03-15T00:30:47.551072",
       "metadata": {}
     },
     {
@@ -262,13 +262,13 @@
       "loc": 79,
       "comment_ratio": 0.0,
       "change_frequency": 0,
-      "purpose_statement": "This workflow automates the deployment of dbt (data build tool) projects to production environments across three cloud data warehouses (Snowflake, BigQuery, and PostgreSQL) whenever code is pushed to the `main` branch. It triggers dbt Cloud jobs using predefined account/project/job IDs, leveraging a shared Python script (`dbtcloudrunjob.py`) to execute deployments with GitHub Actions as the job initiator.",
-      "domain_cluster": "DataOps",
+      "purpose_statement": "This workflow automates the deployment of dbt (data build tool) Cloud jobs to production environments across three distinct data warehouses (Snowflake, BigQuery, and PostgreSQL) whenever code is pushed to the `main` branch. It triggers a pre-configured dbt Cloud job for each target warehouse using a shared Python script (`dbtcloudrunjob.py`), leveraging environment-specific account/project/job IDs and a shared API key.",
+      "domain_cluster": "dbtOps",
       "is_doc_drift": false,
-      "doc_drift_explanation": "The provided docstring is entirely absent, which means there is no documentation to compare. The code explicitly defines a production-focused deployment workflow (triggered on `main` branch pushes) for multiple data warehouses, whereas a generic or missing docstring would mislead users into expecting a broader or less-specific purpose (e.g., CI testing, staging deployments, or a generic \"dbt Cloud integration\"). The actual logic is highly targeted and environment-specific.",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "The provided docstring is entirely absent (empty), which is misleading since the code explicitly implements a multi-warehouse deployment pipeline (not just a generic \"dbt Cloud Deploy Prod\" workflow). The actual logic involves parallelized, warehouse-specific deployments triggered by GitHub Actions, which is a critical detail missing from the docstring.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:20.563936",
+      "last_modified": "2026-03-15T00:30:47.596241",
       "metadata": {}
     },
     {
@@ -350,13 +350,13 @@
       "loc": 79,
       "comment_ratio": 0.0,
       "change_frequency": 0,
-      "purpose_statement": "This workflow automates the deployment of dbt (data build tool) projects to staging environments across three different cloud data warehouses (Snowflake, BigQuery, and PostgreSQL) whenever changes are pushed to the `staging` branch. It triggers a dbt Cloud job for each target environment using a shared Python script (`dbtcloudrunjob.py`) with environment-specific configuration variables (account/project IDs) to execute the staging deployment pipeline.",
-      "domain_cluster": "DataOps",
+      "purpose_statement": "This workflow automates the deployment of dbt (data build tool) projects to staging environments across three cloud platforms (Snowflake, BigQuery, and PostgreSQL) whenever code is pushed to the `staging` branch. It triggers dbt Cloud jobs using a shared Python script (`dbtcloudrunjob.py`) with environment-specific configurations (account/project IDs) to execute transformations in parallel for each target database.",
+      "domain_cluster": "dbtOps",
       "is_doc_drift": false,
-      "doc_drift_explanation": "The docstring is entirely absent (empty), which means there is no documentation to compare against the code's actual purpose. The workflow's logic\u2014deploying dbt jobs to multiple environments on `staging` pushes\u2014is not reflected in any provided docstring, making it a clear case of \"Doc Drift.\"",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "The provided docstring is entirely absent, making it impossible to compare. The code explicitly defines a staging-specific deployment workflow for multiple databases, while a generic or missing docstring would imply broader or less precise functionality (e.g., generic \"CI/CD\" or \"dbt deployment\"). The actual purpose is highly specific to staging deployments across three distinct cloud platforms.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:20.601381",
+      "last_modified": "2026-03-15T00:30:47.641241",
       "metadata": {}
     },
     {
@@ -441,13 +441,13 @@
       "loc": 81,
       "comment_ratio": 0.0,
       "change_frequency": 0,
-      "purpose_statement": "This GitHub Actions workflow automates pull request (PR) validation for dbt Cloud projects by triggering pre-configured dbt jobs (Snowflake, BigQuery, and PostgreSQL) on PRs targeting `main` or `staging`. It uses environment-specific dbt account/project IDs, injects PR metadata (branch name, schema override), and executes a Python script (`dbtcloudrunjob.py`) to run jobs via the dbt Cloud API, ensuring cross-database compatibility checks during development.",
-      "domain_cluster": "DataOps",
+      "purpose_statement": "This workflow automates pull request (PR)-based CI validation for dbt Cloud projects across three cloud platforms (Snowflake, BigQuery, and PostgreSQL). When a PR targeting `main` or `staging` is opened, it triggers parallel jobs that execute pre-configured dbt Cloud jobs (using hardcoded account/project/job IDs) with environment variables like schema overrides (`dbtjsdxpr${{github.headref}}`) to test branch-specific changes in isolated schemas, ensuring code quality before merge.",
+      "domain_cluster": "dbtOps",
       "is_doc_drift": false,
-      "doc_drift_explanation": "The file lacks a docstring, which is unusual for a workflow file managing critical CI logic. While the code clearly describes a multi-database PR validation pipeline, the absence of any documentation (even a placeholder) means the purpose is not explicitly documented, creating a maintenance risk. The workflow\u2019s granularity (three distinct database jobs) and dynamic schema overrides (`dbtjsdxpr${{ github.headref }}`) are not reflected in a generic or outdated docstring.",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "The provided docstring is completely absent, making it impossible to compare. The code\u2019s actual purpose is highly specific\u2014it\u2019s not a generic \"CI/CD pipeline\" but a targeted dbt Cloud PR validation workflow with platform-specific job IDs and schema overrides, which would be misleadingly generic or outdated if documented as a broad \"CI pipeline\" without platform/DBT-specific details.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:20.638878",
+      "last_modified": "2026-03-15T00:30:47.685896",
       "metadata": {}
     },
     {
@@ -480,13 +480,13 @@
       "loc": 134,
       "comment_ratio": 0.07462686567164178,
       "change_frequency": 0,
-      "purpose_statement": "This module programmatically triggers and monitors a DBT Cloud job run via its API, allowing external systems (e.g., GitHub Actions) to initiate a dbt execution with configurable parameters (branch, schema override, or default values). It polls the job\u2019s status in real-time until completion (success/error/cancellation) and provides feedback via logs and a public URL.",
-      "domain_cluster": "DataOps",
-      "is_doc_drift": true,
-      "doc_drift_explanation": "The docstring describes the script as a \"Configuration\" for generic job parameters (e.g., `jobcause`, `schemaoverride`), but the code explicitly implements runtime job triggering and polling logic\u2014not just configuration. The docstring omits critical details like:\n- The script is designed to execute and monitor a job via API calls (not just store config).\n- It handles real-time status checks with retries and error conditions.\n- The `jobid` parameter is used to target a specific job for execution, not just pass-through configuration.",
-      "complexity_score": 0.0,
+      "purpose_statement": "This module programmatically triggers and monitors a DBT Cloud job run via the dbt Cloud API. It accepts configurable parameters (e.g., branch, schema override, job cause) to initiate a job execution, then polls the API in a loop to track its status (queued, running, success/error) until completion or failure, providing real-time feedback and a direct link to the run details.",
+      "domain_cluster": "dbtOps",
+      "is_doc_drift": false,
+      "doc_drift_explanation": "The docstring describes the script as a \"Configuration\" for generic job parameters (e.g., `apibase`, `jobcause`), but the code explicitly implements a workflow for triggering and actively monitoring a specific job run (by `jobid`) with real-time status checks. The docstring lacks mention of:\n1. The polling mechanism (30s initial delay + 10s intervals) to track run status.\n2. The error handling for failed/cancelled runs (explicit exceptions with links).\n3. The dynamic payload construction (e.g., branch sanitization, schema override transformations).\nThe docstring is overly static and doesn\u2019t reflect the script\u2019s active job orchestration behavior.",
+      "complexity_score": 8.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:21.437478",
+      "last_modified": "2026-03-15T00:30:51.285298",
       "metadata": {}
     },
     {
@@ -499,51 +499,132 @@
       "loc": 21,
       "comment_ratio": 0.0,
       "change_frequency": 0,
-      "purpose_statement": "This module provides database-agnostic and database-specific macros to convert monetary values stored in cents (as integers) into dollars (as decimal/numeric values with 2 decimal places). It delegates the conversion logic to the appropriate database dialect (e.g., PostgreSQL, BigQuery, Fabric) via an adapter, with fallback defaults for unsupported cases. The implementation ensures consistent formatting (16-digit precision, 2 decimal places) across different SQL environments.",
-      "domain_cluster": "Monetize",
-      "is_doc_drift": false,
-      "doc_drift_explanation": "The docstring is entirely absent, which means there is no documentation to compare. However, based on the code alone, the module\u2019s purpose is highly specific (database-specific monetary conversion) and not generic or outdated. The lack of any docstring creates a clear \"Doc Drift\" (missing documentation) that fails to reflect the module\u2019s precise functionality.",
-      "complexity_score": 0.0,
+      "purpose_statement": "This module defines database-specific macros to convert monetary values stored in cents (as integers) into dollars (as decimal/numeric values with 2 decimal places). It provides database-agnostic and vendor-specific implementations (e.g., PostgreSQL, BigQuery, Fabric) to ensure consistent currency formatting across different SQL dialects, dividing the input by 100 and formatting the result as a numeric type with 2 decimal places.",
+      "domain_cluster": "Valora",
+      "is_doc_drift": true,
+      "doc_drift_explanation": "The file lacks a docstring entirely, which is misleading given the code\u2019s clear, database-specific purpose. The absence of any documentation contrasts sharply with the concrete logic (e.g., division by 100, type casting, and dialect-specific syntax), making it impossible to infer intent from documentation alone. This violates best practices for maintainability.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:21.491340",
+      "last_modified": "2026-03-15T00:30:51.419115",
       "metadata": {}
     },
     {
       "id": "macros\\generate_schema_name.sql",
       "path": "macros\\generate_schema_name.sql",
       "language": ".sql",
-      "imports": [],
-      "functions": [],
+      "imports": [
+        "table=prod",
+        "table=endmacro",
+        "table=non",
+        "table=schemas",
+        "table=resource_type",
+        "table=default_schema",
+        "table=target",
+        "table=the",
+        "table=custom_schema_name",
+        "table=seeds",
+        "table=endif",
+        "table=trim",
+        "table=elif",
+        "table=as",
+        "table=`raw`",
+        "table=a",
+        "table=_",
+        "table=specified",
+        "table=node"
+      ],
+      "functions": [
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "set_statement",
+          "signature": "set_statement",
+          "docstring": null
+        }
+      ],
       "classes": [],
       "loc": 23,
       "comment_ratio": 0.0,
       "change_frequency": 0,
-      "purpose_statement": "This macro dynamically generates a schema name for database resources (e.g., seeds, tables) based on three conditions: (1) if a custom schema name is provided for a seed resource, it uses that name; (2) if no custom name is provided, it defaults to the target schema; (3) for non-seed resources in a \"prod\" environment, it appends the custom schema name (trimmed of whitespace) to the default schema with an underscore separator; otherwise, it falls back to the default schema. The logic ensures environment-specific schema naming conventions while allowing flexibility for seeds.",
+      "purpose_statement": "This macro dynamically generates a schema name based on three conditions: (1) if the resource type is a \"seed,\" it uses the trimmed `customschemaname`; (2) if no `customschemaname` is provided, it defaults to the target's schema; (3) for non-\"seed\" resources in a \"prod\" environment, it appends the trimmed `customschemaname` to the target schema (with an underscore); otherwise, it falls back to the target schema. The logic ensures environment-specific schema naming while allowing customization or defaults.",
       "domain_cluster": "DataOps",
-      "is_doc_drift": false,
-      "doc_drift_explanation": "The docstring is entirely absent, which means there is no documentation to compare against. Even if a generic placeholder docstring existed, the code\u2019s logic is highly specific to Airflow\u2019s `target` and `node` context (e.g., `target.name == 'prod'`), resource types (`seed`), and conditional schema naming rules\u2014none of which would be captured by a generic or outdated docstring. The code\u2019s behavior is tightly coupled to Airflow\u2019s DAG execution environment, which isn\u2019t implied by a missing docstring.",
-      "complexity_score": 0.0,
+      "is_doc_drift": true,
+      "doc_drift_explanation": "The docstring is entirely absent, leaving no context about the macro's purpose, logic, or parameters. The code reveals a nuanced conditional logic for schema naming (e.g., handling seeds, prod environments, and fallback cases), which cannot be inferred from a blank docstring. This constitutes Doc Drift (missing documentation).",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:21.527819",
+      "last_modified": "2026-03-15T00:30:53.794559",
       "metadata": {}
     },
     {
       "id": "models\\marts\\customers.sql",
       "path": "models\\marts\\customers.sql",
       "language": ".sql",
-      "imports": [],
-      "functions": [],
+      "imports": [
+        "table=customer_id",
+        "table=subtotal",
+        "table=order_id",
+        "table=joined",
+        "table=customers",
+        "table=last_ordered_at",
+        "table=orders",
+        "table=order_total",
+        "table=is_repeat_buyer",
+        "table=sum",
+        "table=lifetime_spend",
+        "table=count",
+        "table=ref",
+        "table=count_lifetime_orders",
+        "table=first_ordered_at",
+        "table=lifetime_spend_pretax",
+        "table=min",
+        "table=tax_paid",
+        "table=customer_type",
+        "table=lifetime_tax_paid",
+        "table=ordered_at",
+        "table=max",
+        "table=customer_orders_summary"
+      ],
+      "functions": [
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        }
+      ],
       "classes": [],
       "loc": 58,
       "comment_ratio": 0.0,
       "change_frequency": 0,
-      "purpose_statement": "This module creates a customer lifetime value and behavior summary mart by aggregating raw customer data with their order history. It calculates key metrics like total orders, first/last purchase dates, lifetime spend (pretax, tax, and total), and classifies customers as \"new\" or \"returning\" based on repeat purchases. The output enriches the staging customer table with derived metrics for segmentation, analytics, or downstream business use cases.",
-      "domain_cluster": "Monetize",
+      "purpose_statement": "This module creates a customer segmentation and lifetime value dashboard by enriching raw customer data with aggregated order metrics. It calculates key metrics like total orders, repeat buyer status, first/last order dates, and lifetime spend (pretax, tax, and total) to classify customers as \"new\" or \"returning\" and enable analysis of purchasing behavior and revenue contribution.",
+      "domain_cluster": "Valora",
       "is_doc_drift": false,
-      "doc_drift_explanation": "The docstring is entirely absent, making it impossible to compare against the code\u2019s explicit purpose. The code\u2019s logic is highly specific (order aggregation, customer segmentation, and spend metrics), while a generic or missing docstring would constitute Doc Drift\u2014either by omission or by failing to reflect the module\u2019s precise analytical focus.",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "The provided docstring is entirely absent, making it impossible to compare against the code\u2019s actual purpose. While the code clearly implements a customer lifetime value (CLV) and segmentation analysis (not just a generic \"customer data model\"), the lack of any documentation means the docstring is functionally \"missing\" rather than misleading or outdated.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:21.565363",
+      "last_modified": "2026-03-15T00:30:53.841799",
       "metadata": {}
     },
     {
@@ -652,13 +733,13 @@
       "loc": 107,
       "comment_ratio": 0.0,
       "change_frequency": 0,
-      "purpose_statement": "This module aggregates and analyzes customer-level metrics by consolidating all historical order data into a single row per customer. It calculates key financial and behavioral dimensions (e.g., lifetime spend, order counts, recency) to enable customer segmentation, retention analysis, and revenue attribution\u2014primarily for LTV (Lifetime Value) calculations and operational insights like average order value.",
-      "domain_cluster": "Monetize",
+      "purpose_statement": "This module aggregates and analyzes customer-level metrics to provide a 360-degree view of customer behavior and financial contribution, including order history (count, timing, and recency), lifetime spend (pre-tax, tax, and total), and derived metrics like average order value. It supports segmentation by customer type (new/returning) and enables granular reporting (e.g., order counts, spend trends) via semantic models and metrics, tailored for business intelligence (e.g., LTV analysis, retention strategies).",
+      "domain_cluster": "Valora",
       "is_doc_drift": false,
-      "doc_drift_explanation": "The docstring (\"Customer overview data mart, offering key details for each unique customer. One row per customer.\") is overly generic and fails to highlight the module\u2019s core analytical purpose (e.g., LTV metrics, derived metrics like average order value, or its role in semantic modeling for business queries). The code explicitly defines derived metrics (e.g., `averageordervalue`), semantic entities for BI tools, and data quality tests that the docstring omits entirely.",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "The provided docstring (\"Customer overview data mart, offering key details for each unique customer. One row per customer.\") is generic and incomplete relative to the code. While it correctly states the grain (one row per customer), it omits critical business logic details\u2014such as the derived metrics (e.g., `averageordervalue`), semantic model structure (entities/dimensions/measures), and business use cases (e.g., LTV segmentation, order recency analysis) explicitly defined in the code. The docstring fails to reflect the module\u2019s analytical depth or its role in supporting derived insights (e.g., `lifetimespendpretax / countlifetimeorders`).",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:21.602122",
+      "last_modified": "2026-03-15T00:30:53.888679",
       "metadata": {}
     },
     {
@@ -668,19 +749,33 @@
       "id": "models\\marts\\locations.sql",
       "path": "models\\marts\\locations.sql",
       "language": ".sql",
-      "imports": [],
-      "functions": [],
+      "imports": [
+        "table=locations",
+        "table=ref"
+      ],
+      "functions": [
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        }
+      ],
       "classes": [],
       "loc": 9,
       "comment_ratio": 0.0,
       "change_frequency": 0,
-      "purpose_statement": "This module is a direct data forwarding layer that exposes the raw, staged location data from `stglocations` (likely a source system or staging area) to downstream consumers (e.g., marts, dashboards, or other models) without transformation. It acts as a pass-through view to ensure consistency in referencing the source location data across the data pipeline, enabling downstream models to rely on a standardized, unaltered reference to the original location records.",
-      "domain_cluster": "Purview",
+      "purpose_statement": "This module is a direct pass-through layer that copies all raw data from the staging table `stglocations` (assumed to be a raw, potentially untransformed source) into the `locations` mart table without any filtering, aggregation, or business logic modifications. It serves as a foundational data layer for downstream mart tables that may require enriched or filtered location data.",
+      "domain_cluster": "Core",
       "is_doc_drift": false,
-      "doc_drift_explanation": "The absence of a docstring (or any documentation) is misleading because the code\u2019s purpose is highly specific\u2014it does not describe a business logic transformation, aggregation, or enrichment, but rather a direct reference forwarding. A generic or missing docstring fails to convey that this is a staging-to-mart bridge rather than a processed model. The code\u2019s simplicity and lack of context (e.g., no joins, filters, or calculations) further emphasizes the drift, as it implies no meaningful business logic exists beyond the reference itself.",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "The docstring is entirely absent, which means there is no documentation to compare against the code. Even if a generic placeholder docstring existed (e.g., \"This model loads location data\"), it would still fail to reflect the trivial, unmodified pass-through nature of this module. The code explicitly reveals its purpose as a 1:1 staging-to-mart replication, not a transformed or curated dataset.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:21.637444",
+      "last_modified": "2026-03-15T00:30:56.679805",
       "metadata": {}
     },
     {
@@ -717,51 +812,123 @@
       "loc": 24,
       "comment_ratio": 0.0,
       "change_frequency": 0,
-      "purpose_statement": "This module defines a location dimension semantic model that aggregates and analyzes key attributes of business locations (e.g., names, opening dates) while calculating the average tax rate per location. It serves as a foundational reference for spatial or regional analytics, enabling granular insights into location-specific financial metrics (e.g., tax burden) tied to the `locationid` primary key.",
-      "domain_cluster": "RetailDims",
+      "purpose_statement": "This module defines a location dimension semantic model that aggregates and exposes key attributes of business locations (e.g., name, opening date) alongside a derived metric (`averagetaxrate`). It serves as a reference table for analyzing location-specific characteristics (e.g., categorical properties) and time-based patterns (e.g., opening dates) while enabling aggregations like average tax rates per location.",
+      "domain_cluster": "Valora",
       "is_doc_drift": true,
-      "doc_drift_explanation": "The docstring (\"Location dimension table. The grain of the table is one row per location.\") is generic and incomplete relative to the code. While it correctly identifies the grain, it omits critical business logic\u2014namely, that the model actively computes an average tax rate (`averagetaxrate`) as a measure, which implies a financial analysis dimension beyond pure dimensionality. The docstring fails to reflect the model\u2019s analytical purpose.",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "The docstring (\"Location dimension table. The grain of the table is one row per location.\") is generic and incomplete relative to the code. While it correctly states the grain, it omits critical details like:\n1. The measure (`averagetaxrate`) and its aggregation logic (average tax rate per location).\n2. The time dimension (`openeddate`) with granularity, which implies temporal analysis capabilities.\n3. The entity relationship (primary key `locationid`), which is implicit but not highlighted. The docstring fails to reflect the model\u2019s analytical purpose (e.g., supporting location-based metrics).",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:21.674120",
+      "last_modified": "2026-03-15T00:30:56.746555",
       "metadata": {}
     },
     {
       "id": "models\\marts\\metricflow_time_spine.sql",
       "path": "models\\marts\\metricflow_time_spine.sql",
       "language": ".sql",
-      "imports": [],
-      "functions": [],
+      "imports": [
+        "table=cast_to_date",
+        "table=date_day",
+        "table=days"
+      ],
+      "functions": [
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        }
+      ],
       "classes": [],
       "loc": 19,
       "comment_ratio": 0.10526315789473684,
       "change_frequency": 0,
-      "purpose_statement": "This module generates a time spine of date values spanning 10 years (3,650 days) by leveraging `dbtdate.getbasedates()` to create a sequential calendar of days, then casts each day to a `DATE` type for downstream mart transformations. It serves as a foundational dataset for time-based aggregations or joins in analytics workflows, ensuring a complete, non-gaps date range for metric calculations.",
-      "domain_cluster": "Monetize",
-      "is_doc_drift": true,
-      "doc_drift_explanation": "The absence of a docstring (or any documentation) creates a critical gap, as the code\u2019s purpose\u2014generating a 10-year date spine\u2014is not explicitly described. While the logic is clear from the code, the lack of context (e.g., intended use case, dependencies, or output format) violates best practices for maintainability and discoverability. The docstring\u2019s omission renders it functionally \"generic\" (i.e., no meaningful documentation exists).",
-      "complexity_score": 0.0,
+      "purpose_statement": "This module generates a time spine of 10,000 sequential dates (365 days \u00d7 10 years) as a base dataset for downstream metricflow calculations. It casts a pre-generated series of date strings (from `dbtdate.getbasedates`) into proper `DATE` type to ensure consistency for temporal joins or aggregations in analytics workflows.",
+      "domain_cluster": "DataOps",
+      "is_doc_drift": false,
+      "doc_drift_explanation": "The docstring is entirely absent, which is misleading since the code\u2019s purpose is highly specific (generating a date spine for metricflow) rather than generic or self-evident. The absence of documentation violates best practices for a reusable component in a data modeling pipeline.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:21.710377",
+      "last_modified": "2026-03-15T00:30:56.788784",
       "metadata": {}
     },
     {
       "id": "models\\marts\\orders.sql",
       "path": "models\\marts\\orders.sql",
       "language": ".sql",
-      "imports": [],
-      "functions": [],
+      "imports": [
+        "table=is_food_order",
+        "table=customer_id",
+        "table=order_id",
+        "table=order_items_summary",
+        "table=count_drink_items",
+        "table=supply_cost",
+        "table=orders",
+        "table=is_food_item",
+        "table=customer_order_number",
+        "table=sum",
+        "table=count_order_items",
+        "table=order_items_subtotal",
+        "table=row_number",
+        "table=count",
+        "table=ref",
+        "table=is_drink_item",
+        "table=order_item_id",
+        "table=compute_booleans",
+        "table=customer_order_count",
+        "table=order_cost",
+        "table=is_drink_order",
+        "table=product_price",
+        "table=count_food_items",
+        "table=order_items",
+        "table=ordered_at"
+      ],
+      "functions": [
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        }
+      ],
       "classes": [],
       "loc": 77,
       "comment_ratio": 0.0,
       "change_frequency": 0,
-      "purpose_statement": "This module transforms raw order and order-item data into a structured dataset that enriches each order record with aggregated metrics and categorical flags. It calculates key financial dimensions (total cost, subtotal, item counts) per order, classifies orders by product type (food/drink presence), and assigns sequential order numbers to each customer's historical orders. The output enables downstream analysis of order patterns, revenue segmentation, and customer behavior segmentation.",
-      "domain_cluster": "Monetize",
+      "purpose_statement": "This module transforms raw order and order-item data into an enriched dataset that categorizes each order by its composition (food vs. drink items) and assigns a sequential order number to each customer's transactions. It calculates aggregated metrics like total order cost, item count, and subtotals while flagging whether an order contains food or drink items, enabling downstream analysis of customer ordering patterns and order characteristics.",
+      "domain_cluster": "Valora",
       "is_doc_drift": false,
-      "doc_drift_explanation": "The absence of a docstring means there is no documentation to compare against the code's actual purpose. While the code clearly implements a sophisticated order aggregation and classification logic with customer ordering sequence tracking, no documentation exists to validate or explain this functionality. This creates a \"doc drift\" where the code's purpose is entirely undocumented.",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "The provided docstring is completely absent, making it impossible to compare. Based on the code alone, the module performs a sophisticated transformation (not just a simple data copy or aggregation) that goes beyond a generic \"orders\" or \"order items\" processing\u2014it explicitly categorizes orders by item type and adds customer ordering context. A proper docstring would describe these key transformations (e.g., \"enriches orders with food/drink flags and customer order sequencing\").",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:21.768390",
+      "last_modified": "2026-03-15T00:30:56.832771",
       "metadata": {}
     },
     {
@@ -907,32 +1074,85 @@
       "loc": 183,
       "comment_ratio": 0.0,
       "change_frequency": 0,
-      "purpose_statement": "This module aggregates and analyzes order-level data to provide a unified view of customer orders, including financial metrics (e.g., subtotal, tax, total cost) and categorical classifications (e.g., food vs. drink orders). It calculates derived attributes like `isfoodorder`/`isdrinkorder` (boolean flags) based on order items, supports semantic analysis for business reporting (e.g., new customer segmentation, order size thresholds), and enables metrics like order counts by category (e.g., food/drink) and revenue aggregation. The logic ensures data integrity via tests (e.g., subtotal/tax validation) and enables downstream analytics through semantic models and saved queries.",
-      "domain_cluster": "Monetize",
+      "purpose_statement": "This module aggregates order-level data into a single-row-per-order fact table that tracks financial metrics (total, tax, cost), categorizes orders by product type (food/drink via boolean flags), and enables customer segmentation (e.g., first-time orders). It also supports analytical use cases like revenue analysis, customer acquisition tracking, and product category breakdowns by leveraging derived measures (e.g., `isfoodorder`) and precomputed metrics (e.g., new customer orders, large orders).",
+      "domain_cluster": "Valora",
       "is_doc_drift": false,
-      "doc_drift_explanation": "The provided docstring (\"Order overview data mart, offering key details for each order including if it's a customer's first order and a food vs. drink item breakdown\") is inaccurate or incomplete relative to the code:\n1. Missing critical logic: The docstring omits the financial breakdown (e.g., `ordertotal`, `taxpaid`, `ordercost`) and data validation tests (e.g., `orderitemssubtotal = subtotal`).\n2. Overgeneralizes \"first order\": The semantic model explicitly defines `customerordernumber` (a categorical dimension) for tracking first-time customers, but the docstring doesn\u2019t mention this granularity or its implementation.\n3. Lacks operational context: The code includes unit tests, metrics (e.g., `largeorders`, `newcustomerorders`), and semantic models for BI tools, which the docstring doesn\u2019t reference. The docstring treats this as a static \"overview\" mart, while the code enables active analytics and reporting.",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "The docstring\u2019s description (\"Order overview data mart, offering key details for each order including if it's a customer's first order and a food vs. drink item breakdown\") is incomplete and misleading relative to the code:\n1. It omits critical financial logic (e.g., validation tests for `ordertotal = subtotal + taxpaid`, `orderitemssubtotal = subtotal`), which are core to the model\u2019s data integrity.\n2. It understates the analytical depth: The code includes semantic models with time dimensions, categorical filters, and precomputed metrics (e.g., `newcustomerorders`, `largeorders`), while the docstring only mentions \"key details.\"\n3. The unit test (e.g., `testorderitemscomputetoboolscorrectly`) and metrics (e.g., `foodorders`, `drinkorders`) imply a product categorization engine, which the docstring does not reflect. The docstring\u2019s phrasing (\"including if it's a customer's first order\") is vague and doesn\u2019t capture the boolean flags (`isfoodorder`, `isdrinkorder`) or their derived use cases.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:21.819177",
+      "last_modified": "2026-03-15T00:30:56.931365",
       "metadata": {}
     },
     {
       "id": "models\\marts\\order_items.sql",
       "path": "models\\marts\\order_items.sql",
       "language": ".sql",
-      "imports": [],
-      "functions": [],
+      "imports": [
+        "table=is_drink_item",
+        "table=orders",
+        "table=products",
+        "table=is_food_item",
+        "table=order_supplies_summary",
+        "table=supplies",
+        "table=product_id",
+        "table=sum",
+        "table=product_name",
+        "table=order_items",
+        "table=ordered_at",
+        "table=supply_cost",
+        "table=order_id",
+        "table=joined",
+        "table=ref",
+        "table=product_price"
+      ],
+      "functions": [
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        }
+      ],
       "classes": [],
       "loc": 66,
       "comment_ratio": 0.0,
       "change_frequency": 0,
-      "purpose_statement": "This module enriches raw order item data by joining staging tables for orders, products, and supplies to create a consolidated view of transactions. It calculates aggregated supply costs per product while linking order timestamps, product attributes (e.g., food/drink flags), and pricing to enable downstream analysis of order composition, cost allocation, and product categorization. The output serves as a unified dataset for evaluating order-level metrics like item pricing, supply expenses, and product classification.",
-      "domain_cluster": "Monetize",
+      "purpose_statement": "This module enriches raw order item data by joining staging tables for orders, products, and supplies to create a consolidated view of transactions. It calculates aggregated supply costs per product while linking order timestamps, product details (name, price, category flags), and supply-related expenses\u2014enabling analysis of order composition, pricing, and associated supply costs.",
+      "domain_cluster": "Valora",
       "is_doc_drift": false,
-      "doc_drift_explanation": "The provided docstring is entirely absent, making it impossible to compare against the actual code logic. The code explicitly implements a multi-table join with supply cost aggregation and product categorization (food/drink flags), which would not be reflected in a generic or missing docstring. This constitutes a clear documentation gap (\"Doc Drift\").",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "The provided docstring is entirely absent, making it impossible to compare against the actual logic. The code\u2019s purpose is highly specific (supply-cost aggregation + multi-table enrichment), yet no documentation exists to reflect this, indicating a critical documentation gap.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:21.855543",
+      "last_modified": "2026-03-15T00:30:56.982086",
       "metadata": {}
     },
     {
@@ -1096,32 +1316,46 @@
       "loc": 181,
       "comment_ratio": 0.022099447513812154,
       "change_frequency": 0,
-      "purpose_statement": "This module (`orderitems.yml`) models individual line items within customer orders, linking order headers to product details (e.g., prices, supply costs) and categorizing items as food/drinks for revenue segmentation. It calculates granular metrics (e.g., revenue, gross profit) per order item, supports time-based aggregations (daily), and enables derived metrics like revenue growth and category breakdowns (e.g., food vs. drink revenue percentages).",
-      "domain_cluster": "Monetize",
+      "purpose_statement": "This module (`orderitems.yml`) models the granular breakdown of individual items within customer orders, enabling detailed revenue analysis by product category (food/drinks) and cost tracking. It calculates key financial metrics (e.g., revenue, gross profit, category-specific breakdowns) at the order-item level while supporting time-series comparisons (e.g., month-over-month growth) and cumulative aggregations. The semantic layer also classifies items into categorical dimensions (e.g., `isfooditem`, `isdrinkitem`) to enable segmentation analysis.",
+      "domain_cluster": "Valora",
       "is_doc_drift": false,
-      "doc_drift_explanation": "The docstring is entirely absent, while the code explicitly defines a detailed business logic around:\n1. Item-level granularity (not just order-level aggregates),\n2. Product categorization (food/drink flags with revenue segmentation),\n3. Cost/revenue metrics (including derived metrics like gross profit and growth rates),\n4. Time-based analysis (daily granularity for orderedat),\n5. Cumulative and ratio metrics (e.g., foodrevenuepct).\nA generic docstring would fail to capture these specific analytical capabilities.",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "The docstring is entirely absent, which is misleading given the module\u2019s rich business logic (e.g., revenue segmentation, cost tracking, and derived metrics like gross profit and category percentages). The code explicitly defines a granular order-item grain with categorical dimensions and derived metrics (e.g., `foodrevenuepct`, `revenuegrowthmom`), none of which are implied by a generic or missing docstring. This creates a significant gap between the code\u2019s purpose and documentation.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:21.895124",
+      "last_modified": "2026-03-15T00:30:57.030214",
       "metadata": {}
     },
     {
       "id": "models\\marts\\products.sql",
       "path": "models\\marts\\products.sql",
       "language": ".sql",
-      "imports": [],
-      "functions": [],
+      "imports": [
+        "table=products",
+        "table=ref"
+      ],
+      "functions": [
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        }
+      ],
       "classes": [],
       "loc": 9,
       "comment_ratio": 0.0,
       "change_frequency": 0,
-      "purpose_statement": "This module serves as a direct pass-through layer for product data, copying all records from the staging table (`stgproducts`) into the `products` mart table without any transformations, filtering, or enrichment. It acts as a raw, unaltered reference point for downstream analytics that require the original staging data structure.",
-      "domain_cluster": "Purview",
+      "purpose_statement": "This module acts as a direct pass-through layer for raw product data, copying all records from the staging table (`stgproducts`) to the mart layer without any transformations, filtering, or aggregations. It serves as a foundational reference layer for downstream product-related analyses, ensuring downstream models can reference the exact same raw product data as the staging layer.",
+      "domain_cluster": "Core",
       "is_doc_drift": false,
-      "doc_drift_explanation": "The docstring is entirely absent, which is misleading because the code\u2019s purpose is not generic or ambiguous\u2014it performs a trivial, one-to-one replication of staging data. The lack of documentation violates best practices for a module that could be misinterpreted as a transformation layer or a curated source of truth.",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "The docstring is entirely absent (empty), which is misleading because the code performs a trivial but critical operation (a direct copy) rather than any meaningful business logic or transformation. The lack of documentation fails to convey that this is a raw data mirror rather than a processed or derived mart layer.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:21.932611",
+      "last_modified": "2026-03-15T00:30:57.074227",
       "metadata": {}
     },
     {
@@ -1156,32 +1390,46 @@
       "loc": 26,
       "comment_ratio": 0.15384615384615385,
       "change_frequency": 0,
-      "purpose_statement": "This module defines a product dimension table (`products`) in a data mart, structured as a grain-by-product (one row per product). It categorizes products along attributes like name, type, description, and binary flags (e.g., food/drink), while treating price as a categorical dimension (likely for segmentation or filtering), with `productid` as the primary key for lookups.",
-      "domain_cluster": "RetailDims",
+      "purpose_statement": "This module defines a product dimension table in a data mart, structured as a single row per product (`productid`). It categorizes products by attributes like name, type, description, and binary flags (e.g., food/drink), while treating price as a categorical dimension\u2014likely for segmentation, filtering, or analytical grouping in BI tools.",
+      "domain_cluster": "Valora",
       "is_doc_drift": false,
-      "doc_drift_explanation": "The docstring\u2019s description (\"Product dimension table. The grain of the table is one row per product.\") is generic and incomplete relative to the code. While it correctly states the grain, it omits critical details from the implementation:\n1. The explicit categorical typing of dimensions (e.g., `productprice` as categorical, which implies non-numeric segmentation rather than a metric).\n2. The binary flags (`isfooditem`, `isdrinkitem`) are not mentioned, which are key business attributes for product classification.\n3. The lack of clarity about whether this is a pure dimension (for reporting) or includes derived metrics (e.g., price as a segmenter). The docstring fails to reflect the code\u2019s emphasis on categorical analysis over numeric analysis.",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "The docstring\u2019s description (\"Product dimension table. The grain of the table is one row per product.\") is generic and incomplete relative to the code. While it correctly states the grain, it omits critical details:\n1. The categorical typing of dimensions (e.g., `productprice` as categorical, which implies non-numeric segmentation).\n2. The binary flags (`isfooditem`, `isdrinkitem`) for product classification, which are business-specific and not implied by the generic description.\n3. The entity definition (`productid` as primary) is buried in the code but not highlighted in the docstring. The docstring fails to reflect the analytical focus (e.g., product categorization for reporting).",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:21.968989",
+      "last_modified": "2026-03-15T00:30:57.118440",
       "metadata": {}
     },
     {
       "id": "models\\marts\\supplies.sql",
       "path": "models\\marts\\supplies.sql",
       "language": ".sql",
-      "imports": [],
-      "functions": [],
+      "imports": [
+        "table=ref",
+        "table=supplies"
+      ],
+      "functions": [
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        }
+      ],
       "classes": [],
       "loc": 9,
       "comment_ratio": 0.0,
       "change_frequency": 0,
-      "purpose_statement": "This module is a direct pass-through layer for the `stgsupplies` staging table, serving as a raw materialization of supply-related data in the `marts` layer. It performs no transformations, filtering, or aggregations\u2014simply exposing the exact schema and records from the source to downstream consumers. The purpose appears to be enabling downstream models to reference a clean, unaltered version of supply data without intermediate processing.",
-      "domain_cluster": "Purview",
-      "is_doc_drift": true,
-      "doc_drift_explanation": "The absence of a docstring (or any documentation) is misleading because the code\u2019s purpose is not generic\u2014it is a specific, minimalist data forwarding layer with no business logic, transformations, or context. The lack of documentation fails to clarify why this layer exists (e.g., for lineage, consistency, or as a placeholder for future logic) and risks confusing users about its role in the data pipeline.",
-      "complexity_score": 0.0,
+      "purpose_statement": "This module is a direct pass-through layer for staging supply data, serving as a simple intermediate step to expose the raw, untransformed `stgsupplies` table (likely from a source system) to downstream mart consumers. It performs no filtering, aggregation, or enrichment\u2014its sole purpose is to standardize the reference path (`{{ ref('stgsupplies') }}`) for downstream dependencies, ensuring consistency in how supply data is accessed across the data mart.",
+      "domain_cluster": "Core",
+      "is_doc_drift": false,
+      "doc_drift_explanation": "The docstring is entirely absent, which is misleading because the code\u2019s actual purpose (a trivial reference pass-through) is not documented at all. While the code is functionally clear, the lack of any documentation violates best practices for maintainability and discoverability, especially in a data mart where dependencies rely on explicit contracts. The absence of context (e.g., whether this is a placeholder, a temporary layer, or a deliberate design choice) creates ambiguity.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:22.005458",
+      "last_modified": "2026-03-15T00:30:57.161885",
       "metadata": {}
     },
     {
@@ -1214,32 +1462,55 @@
       "loc": 24,
       "comment_ratio": 0.16666666666666666,
       "change_frequency": 0,
-      "purpose_statement": "This module defines a supplies dimension table in a data mart, structured as a fact-like grain where each row represents a unique combination of a supply item and a product. It categorizes key attributes (e.g., supply ID, product ID, cost, perishability) as categorical dimensions, enabling analysis of supply-product relationships (e.g., cost breakdowns, inventory categorization) while treating `supplyuuid` as the primary entity key.",
-      "domain_cluster": "RetailDims",
-      "is_doc_drift": true,
-      "doc_drift_explanation": "The docstring\u2019s description (\"Supplies dimension table. The grain of the table is one row per supply and product combination.\") is technically accurate but misleadingly generic. The code explicitly declares all dimensions as `categorical` (not numeric/measure-like), which implies this is a dimension table for descriptive analysis (not a fact table with metrics). The docstring omits critical details about the categorical nature of the dimensions and the primary entity (`supplyuuid`), which are key to understanding its analytical purpose. The grain description could also be clearer\u2014it\u2019s not just a \"combination\" but a one-to-one mapping of supply items to products, with categorical attributes for segmentation.",
-      "complexity_score": 0.0,
+      "purpose_statement": "This semantic model (`supplies`) defines a factless dimension table that tracks supply-product relationships at a granular level (one row per supply and product combination). It serves as a lookup table for analyzing supply attributes (e.g., cost, perishability) tied to specific products, enabling downstream analytics like cost allocation, inventory planning, or supply chain optimization.",
+      "domain_cluster": "Valora",
+      "is_doc_drift": false,
+      "doc_drift_explanation": "The docstring claims this is a \"Supplies dimension table\" but fails to clarify:\n1. Grain ambiguity: It omits the critical detail that the table\u2019s grain is supply-product combinations (not just supplies alone), which is explicitly defined in the code via `entities` and `dimensions`.\n2. Factless nature: The docstring implies a traditional dimension table (with measures), but the code shows a purely dimensional structure (no measures, only categorical attributes).\n3. Missing context: The docstring doesn\u2019t mention the model\u2019s role in linking supplies to products (e.g., for cost analysis or inventory tracking), which is implied by the `productid` dimension.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:22.041828",
+      "last_modified": "2026-03-15T00:30:57.204571",
       "metadata": {}
     },
     {
       "id": "models\\staging\\stg_customers.sql",
       "path": "models\\staging\\stg_customers.sql",
       "language": ".sql",
-      "imports": [],
-      "functions": [],
+      "imports": [
+        "table=customer_name",
+        "table=name",
+        "table=renamed",
+        "table=customer_id",
+        "table=source",
+        "table=id"
+      ],
+      "functions": [
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        }
+      ],
       "classes": [],
       "loc": 23,
       "comment_ratio": 0.08695652173913043,
       "change_frequency": 0,
-      "purpose_statement": "This module extracts raw customer data from the `ecom.rawcustomers` source table, renames two columns (`id` \u2192 `customerid` and `name` \u2192 `customername`) for consistency or clarity, and outputs the transformed data as a staging layer. It serves as a foundational step to standardize customer identifiers and names before further processing or analysis.",
-      "domain_cluster": "Purview",
-      "is_doc_drift": true,
-      "doc_drift_explanation": "The docstring is entirely absent, making it impossible to verify alignment with the code\u2019s purpose. While the code\u2019s logic is clear, the lack of documentation creates a gap in understanding the module\u2019s intent, context, or dependencies (e.g., why these specific columns are renamed or how this fits into the broader pipeline). This violates best practices for maintainability.",
-      "complexity_score": 0.0,
+      "purpose_statement": "This module extracts raw customer data from the `ecom.rawcustomers` source table, renames two columns (`id` \u2192 `customerid` and `name` \u2192 `customername`) for consistency or clarity, and outputs the transformed data as a staging layer. It serves as a foundational data preparation step to standardize column naming before further processing or analysis.",
+      "domain_cluster": "Core",
+      "is_doc_drift": false,
+      "doc_drift_explanation": "The docstring is entirely absent, which means there is no documentation to compare against the code\u2019s actual purpose. The code\u2019s logic (column renaming + simple extraction) is not reflected in any provided documentation, violating best practices for maintainability and clarity.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:22.078505",
+      "last_modified": "2026-03-15T00:30:57.248509",
       "metadata": {}
     },
     {
@@ -1260,32 +1531,59 @@
       "loc": 9,
       "comment_ratio": 0.0,
       "change_frequency": 0,
-      "purpose_statement": "This module (`stgcustomers`) ingests raw customer data and performs foundational data quality checks and transformations to create a single, normalized staging table\u2014one row per customer\u2014ensuring each record has a valid, unique `customerid` and no null values. It serves as a trusted source for downstream processing (e.g., enrichment, analysis) by enforcing basic data integrity constraints.",
-      "domain_cluster": "Purview",
+      "purpose_statement": "This module (`stgcustomers`) is a staging layer transformation that standardizes raw customer data into a clean, normalized format with one row per customer. It enforces data quality by ensuring the `customerid` is non-null and unique, serving as a trusted source for downstream analytics or operational use. The transformation likely includes basic cleaning (e.g., deduplication, type standardization) while preserving the core customer identity.",
+      "domain_cluster": "Core",
       "is_doc_drift": false,
-      "doc_drift_explanation": "N/A\nThe docstring aligns closely with the code\u2019s explicit logic: it describes a staging layer with \"basic cleaning and transformation\" (implied by `notnull`/`unique` tests) and a \"one row per customer\" structure, matching the `customerid` constraints. The docstring\u2019s brevity is intentional (focused on high-level intent rather than implementation details), which is standard for staging models. No misleading or outdated claims are present.",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "The docstring is generic and misleading relative to the code. While it states the module \"applies basic cleaning and transformation,\" the code explicitly defines only two constraints (`notnull` and `unique` on `customerid`)\u2014no mention of \"transformation\" or \"basic cleaning\" beyond these tests. The docstring overpromises the module\u2019s scope by implying broader logic (e.g., deduplication, type standardization) that isn\u2019t reflected in the provided code. The actual purpose is narrower: enforcing data integrity for a single key column.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:22.114767",
+      "last_modified": "2026-03-15T00:30:57.292729",
       "metadata": {}
     },
     {
       "id": "models\\staging\\stg_locations.sql",
       "path": "models\\staging\\stg_locations.sql",
       "language": ".sql",
-      "imports": [],
-      "functions": [],
+      "imports": [
+        "table=date_trunc",
+        "table=opened_date",
+        "table=name",
+        "table=renamed",
+        "table=location_id",
+        "table=source",
+        "table=location_name",
+        "table=dbt",
+        "table=tax_rate",
+        "table=id"
+      ],
+      "functions": [
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        }
+      ],
       "classes": [],
       "loc": 29,
       "comment_ratio": 0.13793103448275862,
       "change_frequency": 0,
-      "purpose_statement": "This module transforms raw store data (`rawstores` from the `ecom` source) into a standardized staging table (`stglocations`) by:\n1. Extracting key location attributes (ID, name, tax rate) and standardizing column names (e.g., `id` \u2192 `locationid`).\n2. Deriving a standardized `openeddate` by truncating the original `openedat` timestamp to the day level.\n3. Serving as a cleaned, normalized intermediate layer for downstream analytics or fact tables.",
-      "domain_cluster": "Purview",
+      "purpose_statement": "This module transforms raw store data from the `ecom.rawstores` source into a standardized staging table (`stglocations`) by extracting key location attributes (ID, name, tax rate) and normalizing the `openedat` timestamp to a daily-granularity date (`openeddate`). It serves as a cleaned, structured intermediate layer for downstream analytics or further processing of physical store locations.",
+      "domain_cluster": "Core",
       "is_doc_drift": true,
-      "doc_drift_explanation": "The absence of a docstring (or any explanatory comment) contrasts sharply with the code\u2019s explicit business logic (e.g., truncating dates, renaming columns). This creates a gap where users must infer purpose from implementation rather than documentation.",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "The file lacks any docstring, which is unusual for a staging model that performs explicit data transformations (column renaming, date truncation) and relies on a specific source table (`ecom.rawstores`). The absence of documentation creates ambiguity about the model\u2019s purpose, expected inputs/outputs, or business context, violating best practices for maintainability.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:22.150743",
+      "last_modified": "2026-03-15T00:30:57.335848",
       "metadata": {}
     },
     {
@@ -1316,31 +1614,66 @@
       "comment_ratio": 0.0,
       "change_frequency": 0,
       "purpose_statement": "This module (`stglocations`) transforms raw store data into a standardized staging table, extracting key location attributes (e.g., `locationid`, `locationname`, `taxrate`) and converting the `openedat` timestamp into a clean date field (`openeddate`). It ensures data integrity by enforcing uniqueness and non-null constraints on the primary key while preserving only essential business-relevant fields for downstream processing.",
-      "domain_cluster": "Purview",
+      "domain_cluster": "Core",
       "is_doc_drift": false,
-      "doc_drift_explanation": "The docstring\u2019s description (\"List of open locations with basic cleaning and transformation applied, one row per location\") is generic and incomplete relative to the code. It fails to:\n1. Specify the explicit transformation of `openedat` to a date (a core logic revealed in the unit test).\n2. Mention the source-to-target mapping (e.g., `id` \u2192 `locationid`, `name` \u2192 `locationname`).\n3. Highlight the data quality rules (e.g., `notnull`/`unique` constraints on `locationid`), which are critical to the module\u2019s purpose. The docstring\u2019s vagueness risks obscuring the module\u2019s actual behavior.",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "The docstring\u2019s description (\"List of open locations with basic cleaning and transformation applied, one row per location\") is overly generic and fails to highlight the specific transformation logic (e.g., truncating `openedat` to a date) or the business context (e.g., preparing structured location metadata for analytics). The code explicitly tests this truncation behavior, which the docstring omits entirely.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:22.188212",
+      "last_modified": "2026-03-15T00:30:58.654037",
       "metadata": {}
     },
     {
       "id": "models\\staging\\stg_orders.sql",
       "path": "models\\staging\\stg_orders.sql",
       "language": ".sql",
-      "imports": [],
-      "functions": [],
+      "imports": [
+        "table=order_total_cents",
+        "table=date_trunc",
+        "table=tax_paid_cents",
+        "table=order_total",
+        "table=customer",
+        "table=source",
+        "table=renamed",
+        "table=location_id",
+        "table=order_id",
+        "table=customer_id",
+        "table=subtotal",
+        "table=subtotal_cents",
+        "table=dbt",
+        "table=ordered_at",
+        "table=tax_paid",
+        "table=cents_to_dollars",
+        "table=store_id",
+        "table=id"
+      ],
+      "functions": [
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        }
+      ],
       "classes": [],
       "loc": 33,
       "comment_ratio": 0.09090909090909091,
       "change_frequency": 0,
-      "purpose_statement": "This module transforms raw e-commerce order data by standardizing monetary values (converting cents to dollars) and truncating timestamps to daily precision. It renames fields for consistency (e.g., `id` \u2192 `orderid`, `storeid` \u2192 `locationid`) and prepares the data for downstream analytics or reporting by ensuring uniform currency formatting and date granularity.",
-      "domain_cluster": "Monetize",
+      "purpose_statement": "This module transforms raw e-commerce order data from `raworders` into a standardized staging format by:\n1) Converting all monetary values (subtotal, tax, order total) from cents to dollars for consistency, while preserving the original cent-precision values as separate columns.\n2) Standardizing date formatting for the `orderedat` timestamp to truncate it to daily precision.\n3) Renaming fields to align with a common schema (e.g., `id` \u2192 `orderid`, `storeid` \u2192 `locationid`).",
+      "domain_cluster": "Core",
       "is_doc_drift": true,
-      "doc_drift_explanation": "The docstring is entirely absent, leaving no context about the module\u2019s purpose, transformations, or business logic. The code explicitly performs monetary unit conversion, field renaming, and date truncation\u2014critical details that would be critical for documentation. This constitutes \"Doc Drift\" due to the complete lack of alignment with the implemented logic.",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "The docstring is entirely absent, leaving no context about the module\u2019s purpose, transformations, or schema changes. The code explicitly documents its logic (via column renaming and unit conversions) that would be critical for consumers, but this is entirely missing from the documentation. This constitutes \"Doc Drift\" as the code\u2019s purpose cannot be inferred from the docstring.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:22.225999",
+      "last_modified": "2026-03-15T00:30:58.920794",
       "metadata": {}
     },
     {
@@ -1364,32 +1697,56 @@
       "loc": 12,
       "comment_ratio": 0.0,
       "change_frequency": 0,
-      "purpose_statement": "This `stgorders` model transforms raw order data into a cleaned staging layer, ensuring one row per order with validated financial consistency (via the test `ordertotal = subtotal + taxpaid`). It enforces data integrity by requiring a unique, non-null `orderid` as the primary key, while preserving core order attributes for downstream processing.",
-      "domain_cluster": "Monetize",
-      "is_doc_drift": true,
-      "doc_drift_explanation": "The docstring is misleadingly generic (\"Order data with basic cleaning and transformation applied\")\u2014it omits critical details like the financial validation test (`ordertotal - taxpaid = subtotal`) and the explicit one-row-per-order guarantee, which are explicitly coded into the model. The docstring fails to reflect the model\u2019s business logic (e.g., tax reconciliation) or its data quality constraints (e.g., `orderid` uniqueness).",
-      "complexity_score": 0.0,
+      "purpose_statement": "This `stgorders` model transforms raw order data into a cleaned staging layer, ensuring one row per order with validated financial calculations (e.g., `ordertotal = subtotal + taxpaid`). It enforces data integrity by requiring a unique, non-null `orderid` and enforces the arithmetic relationship between order components via a test.",
+      "domain_cluster": "Core",
+      "is_doc_drift": false,
+      "doc_drift_explanation": "The docstring is misleadingly generic (\"Order data with basic cleaning and transformation applied\") and omits critical details present in the code:\n1. It explicitly defines the business rule (`ordertotal - taxpaid = subtotal`) as a testable constraint.\n2. It enforces uniqueness/non-null on `orderid` (not just \"basic cleaning\").\n3. The docstring fails to mention the one-row-per-order guarantee or the financial validation logic.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:22.262515",
+      "last_modified": "2026-03-15T00:30:58.964384",
       "metadata": {}
     },
     {
       "id": "models\\staging\\stg_order_items.sql",
       "path": "models\\staging\\stg_order_items.sql",
       "language": ".sql",
-      "imports": [],
-      "functions": [],
+      "imports": [
+        "table=order_item_id",
+        "table=sku",
+        "table=source",
+        "table=renamed",
+        "table=product_id",
+        "table=order_id",
+        "table=id"
+      ],
+      "functions": [
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        }
+      ],
       "classes": [],
       "loc": 22,
       "comment_ratio": 0.045454545454545456,
       "change_frequency": 0,
-      "purpose_statement": "This module transforms raw e-commerce order item data by renaming columns to standardize naming conventions for downstream processing. It extracts the `id` (aliased as `orderitemid`), `orderid`, and `sku` (aliased as `productid`) from the source table `rawitems` to prepare a normalized dataset for staging. The output is a simplified, consistently named table of order items linked to their parent orders and products.",
-      "domain_cluster": "Monetize",
+      "purpose_statement": "This module transforms raw e-commerce order item data by renaming columns to standardize terminology for downstream processing. Specifically, it extracts the `id` field as `orderitemid`, retains `orderid`, and maps the `sku` field to `productid` to align with a target schema. The transformation ensures consistent field naming for downstream analytics or staging tables.",
+      "domain_cluster": "Core",
       "is_doc_drift": true,
-      "doc_drift_explanation": "The file lacks any docstring, which means there is no documentation to compare against. Even if a generic docstring existed, the code\u2019s purpose is highly specific (column renaming + standardization for order items) and would likely not align with a vague or outdated placeholder docstring. The absence of documentation entirely confirms drift.",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "The file lacks any docstring, which is unusual for a staging model that performs explicit column renaming and schema alignment. While the code is self-explanatory, the absence of documentation violates best practices for maintainability and clarity. The \"DOCSTRING\" placeholder in the prompt itself suggests no meaningful documentation exists to compare against.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:22.299923",
+      "last_modified": "2026-03-15T00:30:59.008024",
       "metadata": {}
     },
     {
@@ -1416,32 +1773,64 @@
       "loc": 16,
       "comment_ratio": 0.0,
       "change_frequency": 0,
-      "purpose_statement": "This module (`stgorderitems`) models the granular breakdown of individual food/drink items within customer orders, serving as a junction table between orders and their constituent line items. It enforces referential integrity by linking each item to its parent order (via `orderid`) and ensures uniqueness/non-null constraints for both the item\u2019s internal key (`orderitemid`) and its order association. The design supports downstream analytics (e.g., item-level revenue, inventory tracking) by decoupling order-level metadata from item-specific attributes.",
-      "domain_cluster": "Monetize",
-      "is_doc_drift": false,
-      "doc_drift_explanation": "N/A\nThe docstring\u2019s description (\"Individual food and drink items that make up our orders, one row per item\") aligns precisely with the code\u2019s structural purpose, and the column-level constraints (`notnull`, `unique`, `relationships`) validate the implied business logic without contradiction. No generic or outdated language is present.",
-      "complexity_score": 0.0,
+      "purpose_statement": "This module (`stgorderitems`) models the granular breakdown of individual food/drink items within customer orders, serving as a junction table between orders and their constituent items. It enforces referential integrity by linking each item to its parent order (via `orderid`) while ensuring uniqueness and non-null constraints on the primary key (`orderitemid`). The design supports downstream analytics by normalizing order composition into discrete rows.",
+      "domain_cluster": "Valora",
+      "is_doc_drift": true,
+      "doc_drift_explanation": "The docstring (\"Individual food and drink items that make up our orders, one row per item\") is generic\u2014it doesn\u2019t explicitly mention the technical constraints (e.g., `orderid` foreign key, `notnull`/`unique` tests) or the relationship to `stgorders` that the code enforces. The code implies a staging-layer data quality focus (e.g., validation tests), which the docstring omits entirely.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:22.335691",
+      "last_modified": "2026-03-15T00:30:59.057899",
       "metadata": {}
     },
     {
       "id": "models\\staging\\stg_products.sql",
       "path": "models\\staging\\stg_products.sql",
       "language": ".sql",
-      "imports": [],
-      "functions": [],
+      "imports": [
+        "table=is_drink_item",
+        "table=type",
+        "table=sku",
+        "table=description",
+        "table=is_food_item",
+        "table=name",
+        "table=renamed",
+        "table=product_id",
+        "table=source",
+        "table=product_name",
+        "table=product_type",
+        "table=coalesce",
+        "table=product_description",
+        "table=product_price",
+        "table=cents_to_dollars"
+      ],
+      "functions": [
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        }
+      ],
       "classes": [],
       "loc": 34,
       "comment_ratio": 0.11764705882352941,
       "change_frequency": 0,
-      "purpose_statement": "This module transforms raw product data from the `ecom.rawproducts` source into a standardized staging table (`stgproducts`) by:\n1) Extracting core product attributes (ID, name, type, description) and converting the price from cents to dollars for consistency.\n2) Adding derived boolean flags (`isfooditem`/`isdrinkitem`) to categorize products based on their type field (e.g., \"jaffle\" or \"beverage\").\n3) Serving as a cleaned, enriched intermediate layer for downstream analytics or business logic.",
-      "domain_cluster": "Purview",
+      "purpose_statement": "This module transforms raw product data from an e-commerce source (`rawproducts`) into a standardized staging format (`stgproducts`) by:\n1. Extracting key product attributes (ID, name, type, description, price) and converting the price from cents to dollars.\n2. Adding derived boolean flags (`isfooditem`/`isdrinkitem`) to categorize products based on their type (e.g., \"jaffle\" or \"beverage\").\n3. Ensuring the output aligns with a downstream schema where `productid` is the primary identifier and price is normalized.",
+      "domain_cluster": "Core",
       "is_doc_drift": false,
-      "doc_drift_explanation": "The absence of a docstring (empty DOCSTRING) fails to reflect the module\u2019s specific business logic\u2014namely the type-based categorization (food/drink flags) and price unit conversion, which are critical to its purpose. A generic placeholder would be expected to at least mention these transformations.",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "The docstring is entirely absent, leaving no context about the module\u2019s purpose, transformations, or business logic. The code explicitly handles price conversion, type-based categorization, and schema renaming\u2014details that would be critical for users to understand without documentation. This constitutes Doc Drift due to the complete lack of alignment with the implemented logic.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:22.372257",
+      "last_modified": "2026-03-15T00:30:59.108835",
       "metadata": {}
     },
     {
@@ -1462,32 +1851,64 @@
       "loc": 9,
       "comment_ratio": 0.0,
       "change_frequency": 0,
-      "purpose_statement": "This module (`stgproducts`) ingests raw product data (food/drink items) into a staging layer, enforcing data quality by ensuring each product has a unique, non-null `productid`. It serves as a cleaned, validated foundation for downstream analytics or processing, with one row per product to standardize input before further transformations.",
-      "domain_cluster": "Purview",
+      "purpose_statement": "This module (`stgproducts`) ingests raw product data (food/drink items) into a staging layer, enforcing data quality rules (non-null and unique `productid`) while preparing a clean, normalized dataset\u2014one record per product\u2014ready for downstream transformations. It serves as a controlled entry point for product catalog data before further business logic (e.g., pricing, inventory) is applied.",
+      "domain_cluster": "Core",
       "is_doc_drift": false,
-      "doc_drift_explanation": "The docstring aligns closely with the code\u2014it explicitly describes the module\u2019s role as a \"staging\" layer for product data with basic cleaning (implied by `notnull`/`unique` tests) and a one-row-per-product structure. The code\u2019s `description` and `datatests` reinforce this intent without contradiction.",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "N/A\nThe docstring aligns with the code: it explicitly describes the module\u2019s role as a \"staging\" layer for product data with \"basic cleaning and transformation\" (implied by `notnull`/`unique` tests) and clarifies the one-row-per-product structure. No discrepancies exist between the code\u2019s logic and the docstring\u2019s intent.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:22.409060",
+      "last_modified": "2026-03-15T00:30:59.155939",
       "metadata": {}
     },
     {
       "id": "models\\staging\\stg_supplies.sql",
       "path": "models\\staging\\stg_supplies.sql",
       "language": ".sql",
-      "imports": [],
-      "functions": [],
+      "imports": [
+        "table=dbt_utils",
+        "table=generate_surrogate_key",
+        "table=sku",
+        "table=is_perishable_supply",
+        "table=supply_uuid",
+        "table=supply_name",
+        "table=source",
+        "table=renamed",
+        "table=supply_id",
+        "table=product_id",
+        "table=name",
+        "table=perishable",
+        "table=supply_cost",
+        "table=cents_to_dollars",
+        "table=id"
+      ],
+      "functions": [
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        },
+        {
+          "name": "statement",
+          "signature": "statement",
+          "docstring": null
+        }
+      ],
       "classes": [],
       "loc": 31,
       "comment_ratio": 0.12903225806451613,
       "change_frequency": 0,
-      "purpose_statement": "This module transforms raw supply data from an e-commerce source (`rawsupplies`) into a standardized staging model (`stgsupplies`). It generates a unique surrogate key (`supplyuuid`) for each supply record (using `id` and `sku` as inputs), renames fields for consistency (e.g., `cost` converted to dollars via `centstodollars`), and flags perishable supplies for downstream processing. The output is a denormalized, business-friendly structure ready for further analysis or validation.",
-      "domain_cluster": "Purview",
+      "purpose_statement": "This module transforms raw supply data into a standardized staging model by generating a unique surrogate key (`supplyuuid`) for each supply item (using `id` and `sku` as identifiers), renaming fields for consistency (e.g., `cost` converted to dollars via `centstodollars`), and restructuring the data to align with downstream analytics needs (e.g., mapping `id` to `supplyid` and `sku` to `productid`). It ensures a clean, normalized view of supply records for further processing.",
+      "domain_cluster": "Core",
       "is_doc_drift": true,
-      "doc_drift_explanation": "The docstring is entirely absent, leaving no context about the module\u2019s purpose, transformations, or business logic. The code explicitly reveals its role in standardizing supply data (key generation, unit conversion, and flagging), which cannot be inferred from a blank docstring. This violates best practices for self-documenting code.",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "The absence of a docstring means there is no documentation to compare against the code's explicit logic. While the code clearly defines a staging transformation for supply records, the lack of any documentation (even a placeholder) makes it impossible to verify alignment with business intent or purpose. This violates best practices for maintainability and discoverability.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:22.446487",
+      "last_modified": "2026-03-15T00:30:59.199125",
       "metadata": {}
     },
     {
@@ -1508,13 +1929,13 @@
       "loc": 12,
       "comment_ratio": 0.0,
       "change_frequency": 0,
-      "purpose_statement": "This module (`stgsupplies`) transforms raw supply expense data into a normalized staging table where each row represents a unique cost entry (not a static supply record). It ensures one row per cost fluctuation (tracked via `supplyuuid`) while enforcing uniqueness and non-null constraints, enabling downstream analysis of supply cost history over time.",
-      "domain_cluster": "Purview",
+      "purpose_statement": "This module (`stgsupplies`) transforms raw supply expense data into a normalized staging table where each supply cost entry is a distinct row (one row per cost, not per supply). It enforces uniqueness via a `supplyuuid` (generated per cost fluctuation) while preserving the original `supplyid` for linking back to the parent supply. The logic ensures temporal granularity for cost tracking (e.g., price changes, discounts) by creating new rows with unique identifiers.",
+      "domain_cluster": "Core",
       "is_doc_drift": true,
-      "doc_drift_explanation": "The docstring\u2019s phrasing (\"basic cleaning and transformation applied\") is vague and doesn\u2019t explicitly clarify the key business logic\u2014that the table models time-varying supply costs (one row per cost change, not per supply). The code\u2019s `supplyuuid` + `unique`/`notnull` tests reveal this granularity, which the docstring omits.",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "The docstring\u2019s description (\"List of our supply expenses data with basic cleaning and transformation applied\") is generic and misleading relative to the code. It omits critical details:\n1. The explicit temporal logic (one row per cost, not per supply, with UUIDs for fluctuations).\n2. The key distinction between `supplyuuid` (unique per cost) and `supplyid` (parent identifier).\n3. The data test constraints (`notnull` + `unique`) on `supplyuuid`, which are not implied by the docstring. The docstring fails to reflect the granularity and uniqueness enforcement hardcoded in the model.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:22.481646",
+      "last_modified": "2026-03-15T00:30:59.272980",
       "metadata": {}
     },
     {
@@ -1547,13 +1968,13 @@
       "loc": 20,
       "comment_ratio": 0.0,
       "change_frequency": 0,
-      "purpose_statement": "This module defines a source configuration for the `ecom` data pipeline in a dbt (data build tool) project, specifying raw tables (`rawcustomers`, `raworders`, etc.) sourced from a `raw` schema. It maps the logical structure of an e-commerce system\u2014including customers, orders, items, stores, products, and supplies\u2014while designating timestamp fields (`loadedatfield`) to track data freshness for incremental loading. The configuration serves as the foundational layer for downstream transformations in the staging area.",
-      "domain_cluster": "Purview",
+      "purpose_statement": "This module defines a source configuration for the `ecom` data pipeline in a dbt (data build tool) project, specifying raw tables (`rawcustomers`, `raworders`, etc.) stored in the `raw` schema. It maps the physical tables from an E-commerce system (Jaffle Shop) to dbt\u2019s staging layer, including metadata like descriptions and timestamp fields (`loadedatfield`) to track data freshness. The purpose is to standardize and document the raw data ingestion from the source system for downstream transformations.",
+      "domain_cluster": "DataOps",
       "is_doc_drift": false,
-      "doc_drift_explanation": "The docstring (\"E-commerce data for the Jaffle Shop\") is generic and misleading relative to the code. While the code does describe an e-commerce system, the docstring:\n1. Oversimplifies by omitting critical details like the source schema (`raw`) and table structure (e.g., `loadedatfield` semantics).\n2. Lacks technical precision: The code explicitly lists tables with granular descriptions (e.g., \"One record per SKU\"), while the docstring provides no such specificity.\n3. Does not reflect the pipeline\u2019s role: The docstring implies a high-level business context, but the code\u2019s purpose is infrastructure-focused (source configuration for dbt staging). The docstring fails to distinguish between what the data represents (e-commerce) and how it\u2019s ingested (source YAML setup).",
-      "complexity_score": 0.0,
+      "doc_drift_explanation": "The docstring (\"E-commerce data for the Jaffle Shop\") is generic and incomplete relative to the code. While it correctly identifies the domain, it fails to:\n1. Clarify the technical role of this file (source configuration, not raw data itself).\n2. Specify that it defines staging layer mappings (e.g., schema/table relationships, `loadedatfield` logic) rather than just describing the data.\n3. Mention the dbt-specific purpose (e.g., enabling incremental loading, documentation for staging models). The docstring risks misleading users into thinking this is a data dictionary rather than a pipeline configuration.",
+      "complexity_score": 1.0,
       "is_dead_code_candidate": false,
-      "last_modified": "2026-03-14T14:15:22.517931",
+      "last_modified": "2026-03-15T00:30:59.316255",
       "metadata": {}
     }
   ],

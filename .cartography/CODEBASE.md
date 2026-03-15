@@ -15,14 +15,14 @@ The system is composed of 37 modules across 4 business domains. The architecture
 
 ## 🌊 Data Flow
 ### Entry Points (Sources)
-`ecom_raw_supplies`, `ecom_raw_items`, `ecom_raw_stores`, `ecom_raw_customers`, `ecom_raw_products`, `ecom_raw_orders`
+`ecom_raw_supplies`, `ecom_raw_items`, `ecom_raw_customers`, `ecom_raw_orders`, `ecom_raw_products`, `ecom_raw_stores`
 
 ### Exit Points (Sinks)
-`customers`, `supplies`, `locations`, `products`
+`customers`, `products`, `locations`, `supplies`
 
 ## ⚠️ Known Debt & Risks
 ### Documentation Drift (Implementation != Documentation)
-`.github\workflows\scripts\dbt_cloud_run_job.py`, `models\marts\locations.yml`, `models\marts\metricflow_time_spine.sql`, `models\marts\supplies.sql`, `models\marts\supplies.yml`, `models\staging\stg_customers.sql`, `models\staging\stg_locations.sql`, `models\staging\stg_orders.sql`, `models\staging\stg_orders.yml`, `models\staging\stg_order_items.sql`
+`macros\cents_to_dollars.sql`, `macros\generate_schema_name.sql`, `models\marts\locations.yml`, `models\staging\stg_locations.sql`, `models\staging\stg_orders.sql`, `models\staging\stg_order_items.sql`, `models\staging\stg_order_items.yml`, `models\staging\stg_supplies.sql`, `models\staging\stg_supplies.yml`
 
 ### Potential Circular Dependencies
 (Analyzed in lineage_graph.json)
@@ -36,125 +36,119 @@ The system is composed of 37 modules across 4 business domains. The architecture
 
 ## 📖 Module Purpose Index
 ### `.pre-commit-config.yaml`
-- **Purpose**: This `.pre-commit-config.yaml` defines a pre-commit hook pipeline that enforces code quality and formatting standards before each Git commit. It integrates YAML validation, file formatting (trailing whitespace, EOL fixes), requirements.txt consistency, and Python linting/formatting (via Ruff) to catch issues early in the development workflow.
+- **Purpose**: This `.pre-commit-config.yaml` defines a pre-commit Git hook pipeline that enforces code quality and formatting standards before each commit. It integrates YAML validation, file formatting (trailing whitespace/end-of-file fixes), Python dependency file cleanup, and static analysis (via Ruff) to catch syntax errors and enforce style consistency across the codebase.
 - **Domain**: DataOps
 ### `dbt_project.yml`
-- **Purpose**: This `dbtproject.yml` configures a dbt (data build tool) project named jaffleshop (v3.0.0) to transform raw data into analytical views/tables via a modular staging (`+materialized: view`) and marts (`+materialized: table`) structure. It enforces time-zone consistency (`America/LosAngeles`) for date operations, conditionally loads source data via a variable (`loadsourcedata`), and organizes assets (models, seeds, tests) into standardized paths while targeting a `raw` schema for seeds and a `target` directory for artifacts.
+- **Purpose**: This `dbtproject.yml` configures a dbt (data build tool) project named "jaffleshop" (v3.0.0) to transform raw data into structured analytics-ready tables/views. It defines a modular schema with a staging layer (views) for initial data cleaning and a marts layer (tables) for optimized analytical models, while controlling data loading via variables (e.g., `loadsourcedata`) and enforcing a timezone constraint (America/LosAngeles) for temporal consistency.
 - **Domain**: DataOps
 ### `package-lock.yml`
-- **Purpose**: This `package-lock.yml` file explicitly pins dependencies for a dbt (data build tool) project, locking versions of core utility packages (`dbtutils`, `dbtdate`) and a custom Git-based dependency (`dbt-audit-helper`). It ensures reproducible builds by fixing exact versions (or commit hashes) of third-party and internal dbt macros/plugins, preventing version drift during dependency resolution.
+- **Purpose**: This `package-lock.yml` file serves as a dependency lockfile for a dbt (data build tool) project, explicitly pinning versions of three third-party packages (`dbtutils`, `dbtdate`) and a custom Git repository (`dbt-audit-helper`). It ensures reproducible builds by fixing exact versions (or commit hashes) of dependencies, preventing version drift during deployments or CI/CD pipelines.
 - **Domain**: DataOps
 ### `packages.yml`
-- **Purpose**: This `packages.yml` file defines a dbt (data build tool) dependency management configuration that specifies three external packages to include in a dbt project:
-1. `dbtutils` (v1.3.3) for utility functions (e.g., type casting, string manipulation, and data validation helpers),
-2. `dbtdate` (v0.17.1) for date/time operations (e.g., date partitioning, time-based filtering, and calendar logic),
-3. A custom Git repository (`dbt-audit-helper`) from `dbt-labs` (tracked at `main` branch) likely for audit-related macros or models (e.g., data lineage, compliance checks, or access control logic).
-The file acts as a dependency manifest to ensure these packages are installed and version-controlled in the dbt project.
-
----
+- **Purpose**: This `packages.yml` configuration file defines a dbt (data build tool) project’s dependency management for three third-party packages: `dbtutils` (for utility functions and macros), `dbtdate` (for date handling utilities), and a custom Git repository (`dbt-audit-helper`)—likely a proprietary or experimental tool for audit-related data transformations or validation. The file explicitly pins versions to ensure reproducibility across environments.
 - **Domain**: DataOps
 ### `Taskfile.yml`
-- **Purpose**: This `Taskfile.yml` automates the setup and execution of a dbt (data build tool) workflow for a Jaffle Shop analytics project. It creates a Python virtual environment, installs dependencies (including `dbt-core` and a database adapter like `dbt-bigquery`), generates synthetic seed data for `jaffle-data`, loads it into the database via `dbt seed`, and optionally cleans up intermediate files. The `load` task orchestrates the full pipeline (venv → install → generate → seed → clean).
-- **Domain**: DataOps
+- **Purpose**: This `Taskfile.yml` automates the setup, execution, and cleanup of a data engineering pipeline for generating synthetic datasets (jaffle-shop data) and loading them into a BigQuery database using dbt (data build tool). It creates a Python virtual environment, installs dependencies (including dbt-core and a BigQuery adapter), generates synthetic data for 6 years, seeds it into a `seeds/` directory, and optionally uninstalls dbt afterward. The `load` task orchestrates the full workflow.
+- **Domain**: dbtOps
 ### `.github\workflows\cd_prod.yml`
-- **Purpose**: This workflow automates the deployment of dbt (data build tool) projects to production environments across three cloud data warehouses (Snowflake, BigQuery, and PostgreSQL) whenever code is pushed to the `main` branch. It triggers dbt Cloud jobs using predefined account/project/job IDs, leveraging a shared Python script (`dbtcloudrunjob.py`) to execute deployments with GitHub Actions as the job initiator.
-- **Domain**: DataOps
+- **Purpose**: This workflow automates the deployment of dbt (data build tool) Cloud jobs to production environments across three distinct data warehouses (Snowflake, BigQuery, and PostgreSQL) whenever code is pushed to the `main` branch. It triggers a pre-configured dbt Cloud job for each target warehouse using a shared Python script (`dbtcloudrunjob.py`), leveraging environment-specific account/project/job IDs and a shared API key.
+- **Domain**: dbtOps
 ### `.github\workflows\cd_staging.yml`
-- **Purpose**: This workflow automates the deployment of dbt (data build tool) projects to staging environments across three different cloud data warehouses (Snowflake, BigQuery, and PostgreSQL) whenever changes are pushed to the `staging` branch. It triggers a dbt Cloud job for each target environment using a shared Python script (`dbtcloudrunjob.py`) with environment-specific configuration variables (account/project IDs) to execute the staging deployment pipeline.
-- **Domain**: DataOps
+- **Purpose**: This workflow automates the deployment of dbt (data build tool) projects to staging environments across three cloud platforms (Snowflake, BigQuery, and PostgreSQL) whenever code is pushed to the `staging` branch. It triggers dbt Cloud jobs using a shared Python script (`dbtcloudrunjob.py`) with environment-specific configurations (account/project IDs) to execute transformations in parallel for each target database.
+- **Domain**: dbtOps
 ### `.github\workflows\ci.yml`
-- **Purpose**: This GitHub Actions workflow automates pull request (PR) validation for dbt Cloud projects by triggering pre-configured dbt jobs (Snowflake, BigQuery, and PostgreSQL) on PRs targeting `main` or `staging`. It uses environment-specific dbt account/project IDs, injects PR metadata (branch name, schema override), and executes a Python script (`dbtcloudrunjob.py`) to run jobs via the dbt Cloud API, ensuring cross-database compatibility checks during development.
-- **Domain**: DataOps
+- **Purpose**: This workflow automates pull request (PR)-based CI validation for dbt Cloud projects across three cloud platforms (Snowflake, BigQuery, and PostgreSQL). When a PR targeting `main` or `staging` is opened, it triggers parallel jobs that execute pre-configured dbt Cloud jobs (using hardcoded account/project/job IDs) with environment variables like schema overrides (`dbtjsdxpr${{github.headref}}`) to test branch-specific changes in isolated schemas, ensuring code quality before merge.
+- **Domain**: dbtOps
 ### `.github\workflows\scripts\dbt_cloud_run_job.py`
-- **Purpose**: This module programmatically triggers and monitors a DBT Cloud job run via its API, allowing external systems (e.g., GitHub Actions) to initiate a dbt execution with configurable parameters (branch, schema override, or default values). It polls the job’s status in real-time until completion (success/error/cancellation) and provides feedback via logs and a public URL.
-- **Domain**: DataOps
+- **Purpose**: This module programmatically triggers and monitors a DBT Cloud job run via the dbt Cloud API. It accepts configurable parameters (e.g., branch, schema override, job cause) to initiate a job execution, then polls the API in a loop to track its status (queued, running, success/error) until completion or failure, providing real-time feedback and a direct link to the run details.
+- **Domain**: dbtOps
 ### `macros\cents_to_dollars.sql`
-- **Purpose**: This module provides database-agnostic and database-specific macros to convert monetary values stored in cents (as integers) into dollars (as decimal/numeric values with 2 decimal places). It delegates the conversion logic to the appropriate database dialect (e.g., PostgreSQL, BigQuery, Fabric) via an adapter, with fallback defaults for unsupported cases. The implementation ensures consistent formatting (16-digit precision, 2 decimal places) across different SQL environments.
-- **Domain**: Monetize
+- **Purpose**: This module defines database-specific macros to convert monetary values stored in cents (as integers) into dollars (as decimal/numeric values with 2 decimal places). It provides database-agnostic and vendor-specific implementations (e.g., PostgreSQL, BigQuery, Fabric) to ensure consistent currency formatting across different SQL dialects, dividing the input by 100 and formatting the result as a numeric type with 2 decimal places.
+- **Domain**: Valora
 ### `macros\generate_schema_name.sql`
-- **Purpose**: This macro dynamically generates a schema name for database resources (e.g., seeds, tables) based on three conditions: (1) if a custom schema name is provided for a seed resource, it uses that name; (2) if no custom name is provided, it defaults to the target schema; (3) for non-seed resources in a "prod" environment, it appends the custom schema name (trimmed of whitespace) to the default schema with an underscore separator; otherwise, it falls back to the default schema. The logic ensures environment-specific schema naming conventions while allowing flexibility for seeds.
+- **Purpose**: This macro dynamically generates a schema name based on three conditions: (1) if the resource type is a "seed," it uses the trimmed `customschemaname`; (2) if no `customschemaname` is provided, it defaults to the target's schema; (3) for non-"seed" resources in a "prod" environment, it appends the trimmed `customschemaname` to the target schema (with an underscore); otherwise, it falls back to the target schema. The logic ensures environment-specific schema naming while allowing customization or defaults.
 - **Domain**: DataOps
 ### `models\marts\customers.sql`
-- **Purpose**: This module creates a customer lifetime value and behavior summary mart by aggregating raw customer data with their order history. It calculates key metrics like total orders, first/last purchase dates, lifetime spend (pretax, tax, and total), and classifies customers as "new" or "returning" based on repeat purchases. The output enriches the staging customer table with derived metrics for segmentation, analytics, or downstream business use cases.
-- **Domain**: Monetize
+- **Purpose**: This module creates a customer segmentation and lifetime value dashboard by enriching raw customer data with aggregated order metrics. It calculates key metrics like total orders, repeat buyer status, first/last order dates, and lifetime spend (pretax, tax, and total) to classify customers as "new" or "returning" and enable analysis of purchasing behavior and revenue contribution.
+- **Domain**: Valora
 ### `models\marts\customers.yml`
-- **Purpose**: This module aggregates and analyzes customer-level metrics by consolidating all historical order data into a single row per customer. It calculates key financial and behavioral dimensions (e.g., lifetime spend, order counts, recency) to enable customer segmentation, retention analysis, and revenue attribution—primarily for LTV (Lifetime Value) calculations and operational insights like average order value.
-- **Domain**: Monetize
+- **Purpose**: This module aggregates and analyzes customer-level metrics to provide a 360-degree view of customer behavior and financial contribution, including order history (count, timing, and recency), lifetime spend (pre-tax, tax, and total), and derived metrics like average order value. It supports segmentation by customer type (new/returning) and enables granular reporting (e.g., order counts, spend trends) via semantic models and metrics, tailored for business intelligence (e.g., LTV analysis, retention strategies).
+- **Domain**: Valora
 ### `models\marts\locations.sql`
-- **Purpose**: This module is a direct data forwarding layer that exposes the raw, staged location data from `stglocations` (likely a source system or staging area) to downstream consumers (e.g., marts, dashboards, or other models) without transformation. It acts as a pass-through view to ensure consistency in referencing the source location data across the data pipeline, enabling downstream models to rely on a standardized, unaltered reference to the original location records.
-- **Domain**: Purview
+- **Purpose**: This module is a direct pass-through layer that copies all raw data from the staging table `stglocations` (assumed to be a raw, potentially untransformed source) into the `locations` mart table without any filtering, aggregation, or business logic modifications. It serves as a foundational data layer for downstream mart tables that may require enriched or filtered location data.
+- **Domain**: Core
 ### `models\marts\locations.yml`
-- **Purpose**: This module defines a location dimension semantic model that aggregates and analyzes key attributes of business locations (e.g., names, opening dates) while calculating the average tax rate per location. It serves as a foundational reference for spatial or regional analytics, enabling granular insights into location-specific financial metrics (e.g., tax burden) tied to the `locationid` primary key.
-- **Domain**: RetailDims
+- **Purpose**: This module defines a location dimension semantic model that aggregates and exposes key attributes of business locations (e.g., name, opening date) alongside a derived metric (`averagetaxrate`). It serves as a reference table for analyzing location-specific characteristics (e.g., categorical properties) and time-based patterns (e.g., opening dates) while enabling aggregations like average tax rates per location.
+- **Domain**: Valora
 ### `models\marts\metricflow_time_spine.sql`
-- **Purpose**: This module generates a time spine of date values spanning 10 years (3,650 days) by leveraging `dbtdate.getbasedates()` to create a sequential calendar of days, then casts each day to a `DATE` type for downstream mart transformations. It serves as a foundational dataset for time-based aggregations or joins in analytics workflows, ensuring a complete, non-gaps date range for metric calculations.
-- **Domain**: Monetize
+- **Purpose**: This module generates a time spine of 10,000 sequential dates (365 days × 10 years) as a base dataset for downstream metricflow calculations. It casts a pre-generated series of date strings (from `dbtdate.getbasedates`) into proper `DATE` type to ensure consistency for temporal joins or aggregations in analytics workflows.
+- **Domain**: DataOps
 ### `models\marts\orders.sql`
-- **Purpose**: This module transforms raw order and order-item data into a structured dataset that enriches each order record with aggregated metrics and categorical flags. It calculates key financial dimensions (total cost, subtotal, item counts) per order, classifies orders by product type (food/drink presence), and assigns sequential order numbers to each customer's historical orders. The output enables downstream analysis of order patterns, revenue segmentation, and customer behavior segmentation.
-- **Domain**: Monetize
+- **Purpose**: This module transforms raw order and order-item data into an enriched dataset that categorizes each order by its composition (food vs. drink items) and assigns a sequential order number to each customer's transactions. It calculates aggregated metrics like total order cost, item count, and subtotals while flagging whether an order contains food or drink items, enabling downstream analysis of customer ordering patterns and order characteristics.
+- **Domain**: Valora
 ### `models\marts\orders.yml`
-- **Purpose**: This module aggregates and analyzes order-level data to provide a unified view of customer orders, including financial metrics (e.g., subtotal, tax, total cost) and categorical classifications (e.g., food vs. drink orders). It calculates derived attributes like `isfoodorder`/`isdrinkorder` (boolean flags) based on order items, supports semantic analysis for business reporting (e.g., new customer segmentation, order size thresholds), and enables metrics like order counts by category (e.g., food/drink) and revenue aggregation. The logic ensures data integrity via tests (e.g., subtotal/tax validation) and enables downstream analytics through semantic models and saved queries.
-- **Domain**: Monetize
+- **Purpose**: This module aggregates order-level data into a single-row-per-order fact table that tracks financial metrics (total, tax, cost), categorizes orders by product type (food/drink via boolean flags), and enables customer segmentation (e.g., first-time orders). It also supports analytical use cases like revenue analysis, customer acquisition tracking, and product category breakdowns by leveraging derived measures (e.g., `isfoodorder`) and precomputed metrics (e.g., new customer orders, large orders).
+- **Domain**: Valora
 ### `models\marts\order_items.sql`
-- **Purpose**: This module enriches raw order item data by joining staging tables for orders, products, and supplies to create a consolidated view of transactions. It calculates aggregated supply costs per product while linking order timestamps, product attributes (e.g., food/drink flags), and pricing to enable downstream analysis of order composition, cost allocation, and product categorization. The output serves as a unified dataset for evaluating order-level metrics like item pricing, supply expenses, and product classification.
-- **Domain**: Monetize
+- **Purpose**: This module enriches raw order item data by joining staging tables for orders, products, and supplies to create a consolidated view of transactions. It calculates aggregated supply costs per product while linking order timestamps, product details (name, price, category flags), and supply-related expenses—enabling analysis of order composition, pricing, and associated supply costs.
+- **Domain**: Valora
 ### `models\marts\order_items.yml`
-- **Purpose**: This module (`orderitems.yml`) models individual line items within customer orders, linking order headers to product details (e.g., prices, supply costs) and categorizing items as food/drinks for revenue segmentation. It calculates granular metrics (e.g., revenue, gross profit) per order item, supports time-based aggregations (daily), and enables derived metrics like revenue growth and category breakdowns (e.g., food vs. drink revenue percentages).
-- **Domain**: Monetize
+- **Purpose**: This module (`orderitems.yml`) models the granular breakdown of individual items within customer orders, enabling detailed revenue analysis by product category (food/drinks) and cost tracking. It calculates key financial metrics (e.g., revenue, gross profit, category-specific breakdowns) at the order-item level while supporting time-series comparisons (e.g., month-over-month growth) and cumulative aggregations. The semantic layer also classifies items into categorical dimensions (e.g., `isfooditem`, `isdrinkitem`) to enable segmentation analysis.
+- **Domain**: Valora
 ### `models\marts\products.sql`
-- **Purpose**: This module serves as a direct pass-through layer for product data, copying all records from the staging table (`stgproducts`) into the `products` mart table without any transformations, filtering, or enrichment. It acts as a raw, unaltered reference point for downstream analytics that require the original staging data structure.
-- **Domain**: Purview
+- **Purpose**: This module acts as a direct pass-through layer for raw product data, copying all records from the staging table (`stgproducts`) to the mart layer without any transformations, filtering, or aggregations. It serves as a foundational reference layer for downstream product-related analyses, ensuring downstream models can reference the exact same raw product data as the staging layer.
+- **Domain**: Core
 ### `models\marts\products.yml`
-- **Purpose**: This module defines a product dimension table (`products`) in a data mart, structured as a grain-by-product (one row per product). It categorizes products along attributes like name, type, description, and binary flags (e.g., food/drink), while treating price as a categorical dimension (likely for segmentation or filtering), with `productid` as the primary key for lookups.
-- **Domain**: RetailDims
+- **Purpose**: This module defines a product dimension table in a data mart, structured as a single row per product (`productid`). It categorizes products by attributes like name, type, description, and binary flags (e.g., food/drink), while treating price as a categorical dimension—likely for segmentation, filtering, or analytical grouping in BI tools.
+- **Domain**: Valora
 ### `models\marts\supplies.sql`
-- **Purpose**: This module is a direct pass-through layer for the `stgsupplies` staging table, serving as a raw materialization of supply-related data in the `marts` layer. It performs no transformations, filtering, or aggregations—simply exposing the exact schema and records from the source to downstream consumers. The purpose appears to be enabling downstream models to reference a clean, unaltered version of supply data without intermediate processing.
-- **Domain**: Purview
+- **Purpose**: This module is a direct pass-through layer for staging supply data, serving as a simple intermediate step to expose the raw, untransformed `stgsupplies` table (likely from a source system) to downstream mart consumers. It performs no filtering, aggregation, or enrichment—its sole purpose is to standardize the reference path (`{{ ref('stgsupplies') }}`) for downstream dependencies, ensuring consistency in how supply data is accessed across the data mart.
+- **Domain**: Core
 ### `models\marts\supplies.yml`
-- **Purpose**: This module defines a supplies dimension table in a data mart, structured as a fact-like grain where each row represents a unique combination of a supply item and a product. It categorizes key attributes (e.g., supply ID, product ID, cost, perishability) as categorical dimensions, enabling analysis of supply-product relationships (e.g., cost breakdowns, inventory categorization) while treating `supplyuuid` as the primary entity key.
-- **Domain**: RetailDims
+- **Purpose**: This semantic model (`supplies`) defines a factless dimension table that tracks supply-product relationships at a granular level (one row per supply and product combination). It serves as a lookup table for analyzing supply attributes (e.g., cost, perishability) tied to specific products, enabling downstream analytics like cost allocation, inventory planning, or supply chain optimization.
+- **Domain**: Valora
 ### `models\staging\stg_customers.sql`
-- **Purpose**: This module extracts raw customer data from the `ecom.rawcustomers` source table, renames two columns (`id` → `customerid` and `name` → `customername`) for consistency or clarity, and outputs the transformed data as a staging layer. It serves as a foundational step to standardize customer identifiers and names before further processing or analysis.
-- **Domain**: Purview
+- **Purpose**: This module extracts raw customer data from the `ecom.rawcustomers` source table, renames two columns (`id` → `customerid` and `name` → `customername`) for consistency or clarity, and outputs the transformed data as a staging layer. It serves as a foundational data preparation step to standardize column naming before further processing or analysis.
+- **Domain**: Core
 ### `models\staging\stg_customers.yml`
-- **Purpose**: This module (`stgcustomers`) ingests raw customer data and performs foundational data quality checks and transformations to create a single, normalized staging table—one row per customer—ensuring each record has a valid, unique `customerid` and no null values. It serves as a trusted source for downstream processing (e.g., enrichment, analysis) by enforcing basic data integrity constraints.
-- **Domain**: Purview
+- **Purpose**: This module (`stgcustomers`) is a staging layer transformation that standardizes raw customer data into a clean, normalized format with one row per customer. It enforces data quality by ensuring the `customerid` is non-null and unique, serving as a trusted source for downstream analytics or operational use. The transformation likely includes basic cleaning (e.g., deduplication, type standardization) while preserving the core customer identity.
+- **Domain**: Core
 ### `models\staging\stg_locations.sql`
-- **Purpose**: This module transforms raw store data (`rawstores` from the `ecom` source) into a standardized staging table (`stglocations`) by:
-1. Extracting key location attributes (ID, name, tax rate) and standardizing column names (e.g., `id` → `locationid`).
-2. Deriving a standardized `openeddate` by truncating the original `openedat` timestamp to the day level.
-3. Serving as a cleaned, normalized intermediate layer for downstream analytics or fact tables.
-- **Domain**: Purview
+- **Purpose**: This module transforms raw store data from the `ecom.rawstores` source into a standardized staging table (`stglocations`) by extracting key location attributes (ID, name, tax rate) and normalizing the `openedat` timestamp to a daily-granularity date (`openeddate`). It serves as a cleaned, structured intermediate layer for downstream analytics or further processing of physical store locations.
+- **Domain**: Core
 ### `models\staging\stg_locations.yml`
 - **Purpose**: This module (`stglocations`) transforms raw store data into a standardized staging table, extracting key location attributes (e.g., `locationid`, `locationname`, `taxrate`) and converting the `openedat` timestamp into a clean date field (`openeddate`). It ensures data integrity by enforcing uniqueness and non-null constraints on the primary key while preserving only essential business-relevant fields for downstream processing.
-- **Domain**: Purview
+- **Domain**: Core
 ### `models\staging\stg_orders.sql`
-- **Purpose**: This module transforms raw e-commerce order data by standardizing monetary values (converting cents to dollars) and truncating timestamps to daily precision. It renames fields for consistency (e.g., `id` → `orderid`, `storeid` → `locationid`) and prepares the data for downstream analytics or reporting by ensuring uniform currency formatting and date granularity.
-- **Domain**: Monetize
+- **Purpose**: This module transforms raw e-commerce order data from `raworders` into a standardized staging format by:
+1) Converting all monetary values (subtotal, tax, order total) from cents to dollars for consistency, while preserving the original cent-precision values as separate columns.
+2) Standardizing date formatting for the `orderedat` timestamp to truncate it to daily precision.
+3) Renaming fields to align with a common schema (e.g., `id` → `orderid`, `storeid` → `locationid`).
+- **Domain**: Core
 ### `models\staging\stg_orders.yml`
-- **Purpose**: This `stgorders` model transforms raw order data into a cleaned staging layer, ensuring one row per order with validated financial consistency (via the test `ordertotal = subtotal + taxpaid`). It enforces data integrity by requiring a unique, non-null `orderid` as the primary key, while preserving core order attributes for downstream processing.
-- **Domain**: Monetize
+- **Purpose**: This `stgorders` model transforms raw order data into a cleaned staging layer, ensuring one row per order with validated financial calculations (e.g., `ordertotal = subtotal + taxpaid`). It enforces data integrity by requiring a unique, non-null `orderid` and enforces the arithmetic relationship between order components via a test.
+- **Domain**: Core
 ### `models\staging\stg_order_items.sql`
-- **Purpose**: This module transforms raw e-commerce order item data by renaming columns to standardize naming conventions for downstream processing. It extracts the `id` (aliased as `orderitemid`), `orderid`, and `sku` (aliased as `productid`) from the source table `rawitems` to prepare a normalized dataset for staging. The output is a simplified, consistently named table of order items linked to their parent orders and products.
-- **Domain**: Monetize
+- **Purpose**: This module transforms raw e-commerce order item data by renaming columns to standardize terminology for downstream processing. Specifically, it extracts the `id` field as `orderitemid`, retains `orderid`, and maps the `sku` field to `productid` to align with a target schema. The transformation ensures consistent field naming for downstream analytics or staging tables.
+- **Domain**: Core
 ### `models\staging\stg_order_items.yml`
-- **Purpose**: This module (`stgorderitems`) models the granular breakdown of individual food/drink items within customer orders, serving as a junction table between orders and their constituent line items. It enforces referential integrity by linking each item to its parent order (via `orderid`) and ensures uniqueness/non-null constraints for both the item’s internal key (`orderitemid`) and its order association. The design supports downstream analytics (e.g., item-level revenue, inventory tracking) by decoupling order-level metadata from item-specific attributes.
-- **Domain**: Monetize
+- **Purpose**: This module (`stgorderitems`) models the granular breakdown of individual food/drink items within customer orders, serving as a junction table between orders and their constituent items. It enforces referential integrity by linking each item to its parent order (via `orderid`) while ensuring uniqueness and non-null constraints on the primary key (`orderitemid`). The design supports downstream analytics by normalizing order composition into discrete rows.
+- **Domain**: Valora
 ### `models\staging\stg_products.sql`
-- **Purpose**: This module transforms raw product data from the `ecom.rawproducts` source into a standardized staging table (`stgproducts`) by:
-1) Extracting core product attributes (ID, name, type, description) and converting the price from cents to dollars for consistency.
-2) Adding derived boolean flags (`isfooditem`/`isdrinkitem`) to categorize products based on their type field (e.g., "jaffle" or "beverage").
-3) Serving as a cleaned, enriched intermediate layer for downstream analytics or business logic.
-- **Domain**: Purview
+- **Purpose**: This module transforms raw product data from an e-commerce source (`rawproducts`) into a standardized staging format (`stgproducts`) by:
+1. Extracting key product attributes (ID, name, type, description, price) and converting the price from cents to dollars.
+2. Adding derived boolean flags (`isfooditem`/`isdrinkitem`) to categorize products based on their type (e.g., "jaffle" or "beverage").
+3. Ensuring the output aligns with a downstream schema where `productid` is the primary identifier and price is normalized.
+- **Domain**: Core
 ### `models\staging\stg_products.yml`
-- **Purpose**: This module (`stgproducts`) ingests raw product data (food/drink items) into a staging layer, enforcing data quality by ensuring each product has a unique, non-null `productid`. It serves as a cleaned, validated foundation for downstream analytics or processing, with one row per product to standardize input before further transformations.
-- **Domain**: Purview
+- **Purpose**: This module (`stgproducts`) ingests raw product data (food/drink items) into a staging layer, enforcing data quality rules (non-null and unique `productid`) while preparing a clean, normalized dataset—one record per product—ready for downstream transformations. It serves as a controlled entry point for product catalog data before further business logic (e.g., pricing, inventory) is applied.
+- **Domain**: Core
 ### `models\staging\stg_supplies.sql`
-- **Purpose**: This module transforms raw supply data from an e-commerce source (`rawsupplies`) into a standardized staging model (`stgsupplies`). It generates a unique surrogate key (`supplyuuid`) for each supply record (using `id` and `sku` as inputs), renames fields for consistency (e.g., `cost` converted to dollars via `centstodollars`), and flags perishable supplies for downstream processing. The output is a denormalized, business-friendly structure ready for further analysis or validation.
-- **Domain**: Purview
+- **Purpose**: This module transforms raw supply data into a standardized staging model by generating a unique surrogate key (`supplyuuid`) for each supply item (using `id` and `sku` as identifiers), renaming fields for consistency (e.g., `cost` converted to dollars via `centstodollars`), and restructuring the data to align with downstream analytics needs (e.g., mapping `id` to `supplyid` and `sku` to `productid`). It ensures a clean, normalized view of supply records for further processing.
+- **Domain**: Core
 ### `models\staging\stg_supplies.yml`
-- **Purpose**: This module (`stgsupplies`) transforms raw supply expense data into a normalized staging table where each row represents a unique cost entry (not a static supply record). It ensures one row per cost fluctuation (tracked via `supplyuuid`) while enforcing uniqueness and non-null constraints, enabling downstream analysis of supply cost history over time.
-- **Domain**: Purview
+- **Purpose**: This module (`stgsupplies`) transforms raw supply expense data into a normalized staging table where each supply cost entry is a distinct row (one row per cost, not per supply). It enforces uniqueness via a `supplyuuid` (generated per cost fluctuation) while preserving the original `supplyid` for linking back to the parent supply. The logic ensures temporal granularity for cost tracking (e.g., price changes, discounts) by creating new rows with unique identifiers.
+- **Domain**: Core
 ### `models\staging\__sources.yml`
-- **Purpose**: This module defines a source configuration for the `ecom` data pipeline in a dbt (data build tool) project, specifying raw tables (`rawcustomers`, `raworders`, etc.) sourced from a `raw` schema. It maps the logical structure of an e-commerce system—including customers, orders, items, stores, products, and supplies—while designating timestamp fields (`loadedatfield`) to track data freshness for incremental loading. The configuration serves as the foundational layer for downstream transformations in the staging area.
-- **Domain**: Purview
+- **Purpose**: This module defines a source configuration for the `ecom` data pipeline in a dbt (data build tool) project, specifying raw tables (`rawcustomers`, `raworders`, etc.) stored in the `raw` schema. It maps the physical tables from an E-commerce system (Jaffle Shop) to dbt’s staging layer, including metadata like descriptions and timestamp fields (`loadedatfield`) to track data freshness. The purpose is to standardize and document the raw data ingestion from the source system for downstream transformations.
+- **Domain**: DataOps
