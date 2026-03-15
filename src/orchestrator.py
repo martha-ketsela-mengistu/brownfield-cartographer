@@ -1,6 +1,8 @@
 import os
 import json
 import logging
+import hashlib
+import networkx as nx
 from typing import Dict, Any
 from .agents.surveyor import SurveyorAgent
 from .agents.hydrologist import HydrologistAgent
@@ -11,9 +13,14 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 class Orchestrator:
-    def __init__(self, repo_path: str, output_dir: str = ".cartography"):
+    def __init__(self, repo_path: str, base_output_dir: str = ".cartography"):
         self.repo_path = os.path.abspath(repo_path)
-        self.output_dir = output_dir
+        
+        # Generate a unique project ID based on the repo name and path
+        repo_name = os.path.basename(self.repo_path) or "unknown_repo"
+        path_hash = hashlib.md5(self.repo_path.encode()).hexdigest()[:8]
+        self.output_dir = os.path.join(base_output_dir, f"{repo_name}_{path_hash}")
+        
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
         self._setup_logging()
@@ -99,8 +106,8 @@ class Orchestrator:
             
         logger.info(f"Hydrologist finished. Lineage graph has {len(self.kg_manager.lineage_graph.edges)} edges.")
 
-        # 2.5 Semanticist (Deep Analysis)
-        logger.info("Phase 2.5: Running Semanticist...")
+        # 3. Semanticist (Deep Analysis)
+        logger.info("Phase 3: Running Semanticist...")
         try:
             from .agents.semanticist import SemanticistAgent
             semanticist = SemanticistAgent(self.repo_path)
@@ -140,38 +147,56 @@ class Orchestrator:
             except Exception as cluster_error:
                 logger.error(f"Clustering failed: {cluster_error}")
 
-            # Synthesis: Five FDE Day-One Answers
-            logger.info("Synthesizing Five FDE Day-One Answers...")
-            try:
-                onboarding_brief = semanticist.generate_day_one_brief(self.kg_manager)
-                brief_path = os.path.join(self.output_dir, "onboarding_brief.md")
-                with open(brief_path, "w", encoding="utf-8") as f:
-                    f.write(onboarding_brief)
-                logger.info(f"Onboarding brief saved to {brief_path}")
-            except Exception as synth_error:
-                logger.error(f"Synthesis failed: {synth_error}")
-
-            # Phase 2.6: Archivist (Living Context)
-            logger.info("Phase 2.6: Running Archivist...")
+            # 4: Archivist (Central Synthesis Hub)
+            logger.info("Phase 4: Running Archivist for Central Synthesis...")
             try:
                 from .agents.archivist import ArchivistAgent
                 archivist = ArchivistAgent(self.repo_path, self.kg_manager)
+                
+                # Synthesis 1: CODEBASE.md
                 codebase_md = archivist.generate_CODEBASE_md()
                 codebase_path = os.path.join(self.output_dir, "CODEBASE.md")
                 with open(codebase_path, "w", encoding="utf-8") as f:
                     f.write(codebase_md)
                 logger.info(f"CODEBASE.md saved to {codebase_path}")
+                
+                # Synthesis 2: Onboarding Brief
+                onboarding_brief = archivist.generate_onboarding_brief()
+                brief_path = os.path.join(self.output_dir, "onboarding_brief.md")
+                with open(brief_path, "w", encoding="utf-8") as f:
+                    f.write(onboarding_brief)
+                logger.info(f"Onboarding brief saved to {brief_path}")
+                
             except Exception as arch_error:
                 logger.error(f"Archivist failed: {arch_error}")
 
         except Exception as e:
             logger.error(f"Semanticist failed: {e}")
 
-        # 3. Computing Metrics
+        # 5. Computing Metrics
         logger.info("Computing graph metrics...")
         pagerank = self.kg_manager.compute_pagerank()
         
-        # 4. Serialization
+        # 6. Dead Code Detection
+        logger.info("Detecting dead code candidates...")
+        try:
+            imported_modules = set()
+            for u, v, data in self.kg_manager.graph.edges(data=True):
+                if data.get("type") == "IMPORTS":
+                    imported_modules.add(v)
+            
+            for node in self.kg_manager.data_store.modules:
+                # If a module is NOT imported by anyone else, it might be dead code
+                # (Excluding known entry points or modules with no exports if they are scripts)
+                if node.id not in imported_modules:
+                    node.is_dead_code_candidate = True
+                    if node.id in self.kg_manager.graph:
+                        self.kg_manager.graph.nodes[node.id]['is_dead_code_candidate'] = True
+                    logger.info(f"Dead code candidate detected: {node.path}")
+        except Exception as e:
+            logger.error(f"Dead code detection failed: {e}")
+        
+        # 7. Serialization
         logger.info(f"Saving artifacts to {self.output_dir}")
         self.kg_manager.serialize(os.path.join(self.output_dir, "module_graph.json"))
         self.kg_manager.serialize_lineage(os.path.join(self.output_dir, "lineage_graph.json"))
@@ -186,7 +211,7 @@ class Orchestrator:
         except:
             pass
         
-        # 5. Visualization
+        # 8. Visualization
         logger.info("Generating visualizations...")
         viz_dir = os.path.join(self.output_dir, "visualizations")
         if not os.path.exists(viz_dir):
