@@ -4,12 +4,15 @@ from typing import Dict, Any, List
 from ..graph.knowledge_graph import KnowledgeGraphManager
 from ..utils.trace_logger import default_trace
 
+from .semanticist import IntelligentLLMWrapper
+
 logger = logging.getLogger(__name__)
 
 class ArchivistAgent:
     def __init__(self, repo_path: str, kg_manager: KnowledgeGraphManager):
         self.repo_path = repo_path
         self.kg_manager = kg_manager
+        self.llm = IntelligentLLMWrapper()
 
     def generate_CODEBASE_md(self) -> str:
         """
@@ -38,10 +41,11 @@ class ArchivistAgent:
         
         # 4. Known Debt (Circular deps + Doc Drift)
         drift_modules = [m.path for m in self.kg_manager.data_store.modules if m.is_doc_drift]
+        cycles = self.kg_manager.detect_circular_dependencies()
         
         # 5. High-Velocity Files (Git frequency)
         velocity_files = sorted(self.kg_manager.data_store.modules, key=lambda m: m.change_frequency, reverse=True)[:5]
-        velocity_list = "\n".join([f"- `{m.path}` ({m.change_frequency} commits in 30d)" for m in velocity_files])
+        velocity_list = "\n".join([f"- `{m.path}` ({m.change_frequency} commits in 90d)" for m in velocity_files])
 
         # 6. Module Purpose Index
         purpose_index = "\n".join([f"### `{m.path}`\n- **Purpose**: {m.purpose_statement}\n- **Domain**: {m.domain_cluster}" for m in self.kg_manager.data_store.modules[:50]])
@@ -68,8 +72,8 @@ The system is composed of {len(self.kg_manager.data_store.modules)} modules acro
 ### Documentation Drift (Implementation != Documentation)
 {", ".join([f"`{d}`" for d in drift_modules[:10]]) if drift_modules else "No significant drift detected."}
 
-### Potential Circular Dependencies
-(Analyzed in lineage_graph.json)
+### Circular Dependencies
+{", ".join([f"`{' -> '.join(c)} -> {c[0]}`" for c in cycles[:5]]) if cycles else "No circular dependencies detected."}
 
 ## 📈 Recent Change Velocity (Hotspots)
 {velocity_list}
@@ -87,3 +91,63 @@ The system is composed of {len(self.kg_manager.data_store.modules)} modules acro
         )
         
         return md_content
+
+    def generate_onboarding_brief(self) -> str:
+        """
+        Synthesizes the Five FDE Day-One Answers using the full architectural context.
+        Consumes outputs from all other agents (Surveyor, Hydrologist, Semanticist) via the Knowledge Graph.
+        """
+        logger.info("Generating onboarding_brief.md...")
+        
+        # Collect context from KG
+        modules = self.kg_manager.data_store.modules
+        top_hubs = sorted(self.kg_manager.compute_pagerank().items(), key=lambda x: x[1], reverse=True)[:10]
+        
+        # Hotspots (High Velocity)
+        velocity_files = sorted(modules, key=lambda m: m.change_frequency, reverse=True)[:10]
+        hotspots_context = "\n".join([f"- {m.path}: {m.change_frequency} commits" for m in velocity_files])
+        
+        # Prepare a concise summary of the graph for the LLM
+        module_context = []
+        for node in modules[:50]: # Limit for context window
+            module_context.append(f"- {node.path}: {node.purpose_statement} (Domain: {node.domain_cluster}, Velocity: {node.change_frequency} commits)")
+        
+        lineage_context = f"Lineage Graph has {len(self.kg_manager.lineage_graph.nodes)} nodes and {len(self.kg_manager.lineage_graph.edges)} edges."
+        
+        prompt = f"""
+I am a new FDE joining this project. Based on your full analysis of the code, answer the **Five FDE Day-One Questions** to help me get up to speed in 72 hours.
+
+CONTEXT:
+Repository: {self.repo_path}
+Architectural Hubs (Top PageRank): {", ".join([h[0] for h in top_hubs])}
+{lineage_context}
+
+HOTSPOTS (High-Velocity Files):
+{hotspots_context}
+
+MODULE SAMPLES (Consolidated from Surveyor, Hydrologist, Semanticist):
+{"\n".join(module_context)}
+
+TASK: Answer these 5 questions with directness and evidence. Cite specific files or patterns.
+1. What is the primary data ingestion path? (How does data enter the system?)
+2. What are the 3-5 most critical output datasets/endpoints? (What provides value?)
+3. What is the blast radius if the most critical module fails? (What breaks downstream?)
+4. Where is the business logic concentrated vs. distributed? (Is it in SQL, Python, or config?)
+5. What has changed most frequently in the last 90 days? (Based on change_frequency/velocity)
+
+FORMAT:
+Markdown document with # Five FDE Day-One Answers header.
+Each question as an H2, followed by a concise answer with evidence citations.
+"""
+        onboarding_brief = self.llm.chat(prompt, tier="synthesis")
+        
+        # Log action to trace
+        default_trace.log_action(
+            agent="Archivist",
+            action="generate_onboarding_brief",
+            evidence="Synthesis of cross-agent analysis outputs including git velocity",
+            confidence=0.9,
+            metadata={"source_agents": ["Surveyor", "Hydrologist", "Semanticist"]}
+        )
+        
+        return onboarding_brief
