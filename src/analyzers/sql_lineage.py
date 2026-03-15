@@ -7,6 +7,21 @@ class SQLLineageAnalyzer:
     def __init__(self, dialect: str = "duckdb"):
         self.dialect = dialect
 
+    def detect_dialect(self, sql_content: str) -> str:
+        """
+        Heuristic-based SQL dialect detection.
+        """
+        sql_lower = sql_content.lower()
+        if "qualify" in sql_lower and "over" in sql_lower:
+            return "snowflake" # or bigquery
+        if "unnest" in sql_lower:
+            return "bigquery" # or postgres
+        if "copy " in sql_lower and "from stdin" in sql_lower:
+            return "postgres"
+        if "datetime" in sql_lower and "extract" in sql_lower:
+            return "bigquery"
+        return self.dialect # Default
+
     def extract_dependencies(self, sql_content: str) -> Dict[str, List[str]]:
         """
         Extracts source tables and target tables from a SQL string.
@@ -14,6 +29,9 @@ class SQLLineageAnalyzer:
         """
         sources = set()
         targets = set()
+        
+        # Detect dialect dynamically
+        current_dialect = self.detect_dialect(sql_content)
         
         # Explicitly extract dbt refs and sources (definitive dependencies)
         dbt_refs = re.findall(r"\{\{\s*ref\(['\"](\w+)['\"]\)\s*\}\}", sql_content)
@@ -32,19 +50,17 @@ class SQLLineageAnalyzer:
 
         try:
             # Parse the SQL
-            for expression in sqlglot.parse(processed_sql, read=self.dialect):
+            for expression in sqlglot.parse(processed_sql, read=current_dialect):
                 # Find tables in FROM and JOIN
                 for table in expression.find_all(exp.Table):
-                    table_name = table.sql(dialect=self.dialect)
-                    # Only add if we didn't already explicitly capture it as a dbt ref, and if it's not a CTE
-                    # (Simplified for now, we'll just add it and then remove CTEs)
+                    table_name = table.sql(dialect=current_dialect)
                     sources.add(table_name)
                 
                 # Find target table in INSERT INTO or CREATE TABLE
                 if isinstance(expression, exp.Create) or isinstance(expression, exp.Insert):
                     target_table = expression.find(exp.Table)
                     if target_table:
-                        targets.add(target_table.sql(dialect=self.dialect))
+                        targets.add(target_table.sql(dialect=current_dialect))
                         
                 # Handle CTEs: remove CTE names from sources ONLY IF they aren't explicit dbt refs
                 ctes = {cte.alias_or_name for cte in expression.find_all(exp.CTE)}
