@@ -55,6 +55,17 @@ class KnowledgeGraphManager:
             return {}
         return nx.pagerank(self.graph)
 
+    def detect_circular_dependencies(self) -> List[List[str]]:
+        """
+        Detects all simple cycles in the module import graph.
+        """
+        if not self.graph.nodes:
+            return []
+        try:
+            return list(nx.simple_cycles(self.graph))
+        except Exception:
+            return []
+
     def serialize_lineage(self, output_path: str):
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         data = nx.node_link_data(self.lineage_graph)
@@ -82,6 +93,12 @@ class KnowledgeGraphManager:
             # Convert graph data back to ModuleNode
             # Filter out NetworkX specific internal keys if any
             node_data = {k: v for k, v in data.items() if not k.startswith("_")}
+            
+            # SKip nodes that are just "placeholders" from imports (no path data)
+            if 'path' not in node_data:
+                continue
+                
+            node_data['id'] = str(node_id) # Restore the ID
             try:
                 self.data_store.modules.append(ModuleNode(**node_data))
             except Exception as e:
