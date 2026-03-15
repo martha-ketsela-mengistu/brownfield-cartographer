@@ -9,13 +9,13 @@ def test_token_counting():
     # Overly simplified check
     assert wrapper.count_tokens(text) > 0
 
-@patch("ollama.chat")
-@patch("ollama.embeddings")
+@patch("ollama.Client.generate")
+@patch("ollama.Client.embeddings")
 @patch("chromadb.PersistentClient")
 def test_semanticist_purpose(mock_chroma, mock_embed, mock_chat):
-    # Mock Ollama chat
+    # Mock Ollama Client.generate
     mock_chat.return_value = {
-        'message': {'content': "Purpose: This module handles data ingestion.\nDrift: No\nDriftReason: None"}
+        'response': "Purpose: This module handles data ingestion.\nDrift: No\nDriftReason: None"
     }
     # Mock Ollama embeddings
     mock_embed.return_value = {'embedding': [0.1, 0.2, 0.3]}

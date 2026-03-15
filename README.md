@@ -28,36 +28,45 @@ This project uses `uv` for fast dependency management.
 
 ## Usage
 
-You can run the cartographer against a local repository path or a remote GitHub URL.
+The Cartographer provides two main entry points: **Analyze** (to build the knowledge graph) and **Query** (to interact with it via the AI Navigator).
 
 ### 1. Analyze a Repository
 
-The `analyze` command runs the full pipeline (Surveyor + Hydrologist) sequentially and serializes the graphs to the `.cartography/` folder.
+Point the Cartographer at a local directory or a GitHub URL. This builds the structural and data lineage graphs.
 
 ```bash
-# Analyze a local directory
-uv run python -m src.cli analyze target_repo/jaffle-shop
+# Analyze a GitHub repo
+uv run python -m src.cli analyze https://github.com/dbt-labs/jaffle_shop
 
-# Alternatively, analyze a remote GitHub repository (it will be cloned automatically and cleaned up afterwards)
-uv run python -m src.cli analyze https://github.com/dbt-labs/jaffle-shop
+# Analyze a local path incrementally
+uv run python -m src.cli analyze ./target_repo --incremental
 ```
 
-This will:
-- Process all `.py`, `.sql`, and `.yaml`/`.yml` files.
-- Compute the top PageRank hubs.
-- Generate `.cartography/module_graph.json` and `.cartography/lineage_graph.json`.
-- Render HTML visualisations in `.cartography/visualizations/`.
+**What it produces**:
+- `.cartography/CODEBASE.md`: A synthesized context for AI coding agents.
+- `.cartography/onboarding_brief.md`: Answers to the Five FDE Day-One Questions.
+- `.cartography/module_graph.json`: Structural import graph.
+- `.cartography/lineage_graph.json`: Data lineage graph.
+- `.cartography/visualizations/`: Interactive HTML maps of your code.
 
-### 2. Query Data Lineage
+### 2. Query the Navigator (Interactive AI)
 
-Once a repository has been analyzed, you can query the data lineage graph.
+Once analyzed, use the Navigator agent to investigate the codebase.
 
-**Trace Upstream Sources** for a dataset:
 ```bash
-uv run python -m src.cli lineage customers
+# General implementation query
+uv run python -m src.cli query "Where is the revenue calculation?"
+
+# Data lineage query
+uv run python -m src.cli query --path target_repo/jaffle-shop "What upstream sources feed the 'orders' table?"
+
+# Impact analysis (Blast Radius)
+uv run python -m src.cli query --path target_repo/jaffle-shop "What breaks if I change src/models/staging/stg_orders.sql?"
 ```
 
-**Determine Blast Radius** (downstream impacts) for a dataset:
-```bash
-uv run python -m src.cli blast-radius ecom_raw_customers
-```
+## Features
+- **Surveyor Agent**: Static AST analysis (tree-sitter), PageRank hubs, and cyclomatic complexity.
+- **Hydrologist Agent**: Cross-language data lineage (Python + SQL + YAML).
+- **Semanticist Agent**: LLM-powered purpose extraction and **Documentation Drift** detection.
+- **Archivist Agent**: Living context generation (`CODEBASE.md`) and audit trail logging.
+- **Navigator**: LangGraph-powered query agent with tools for graph traversal and semantic search.

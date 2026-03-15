@@ -53,45 +53,71 @@ def analyze_ast(file_path: str):
         logging.error(f"Error parsing AST for {file_path}: {e}")
         return None, None
 
+from tree_sitter import Language, Parser, Query, QueryCursor
+# S-expression queries for reliable structural extraction
+PY_QUERY = """
+(import_statement (dotted_name) @import)
+(import_from_statement (dotted_name) @import_from)
+(function_definition name: (identifier) @function) @function_full
+(class_definition name: (identifier) @class) @class_full
+"""
+
 def extract_python_structure(tree, content: bytes):
     """
-    Extracts deep structure from Python AST.
+    Extracts deep structure from Python AST using S-expression queries.
+    Captures names and line ranges.
     """
+    if not tree or not tspython:
+        return [], [], []
+        
+    language = Language(tspython.language())
+    query = Query(language, PY_QUERY)
+    cursor = QueryCursor(query)
+    captures = cursor.captures(tree.root_node)
+    
+    # captures is a dict mapping tag -> list of nodes
     imports = []
+    # Store functions/classes as dicts with metadata
     functions = []
     classes = []
     
-    if not tree:
-        return imports, functions, classes
-        
-    root_node = tree.root_node
+    # We need to pair @function with its @function_full to get the name vs the whole block
+    # However, captures() in 0.25+ returns a dict. Let's see how pairings work.
+    # Actually, it might be easier to use matches() if we need pairings, 
+    # but let's look at the dictionary contents.
     
-    # Simple recursive traversal for demonstration
-    # Real implementation would use S-expression queries
-    def traverse(node):
-        if node.type == "import_statement":
-            imports.append(content[node.start_byte:node.end_byte].decode("utf8"))
-        elif node.type == "import_from_statement":
-            imports.append(content[node.start_byte:node.end_byte].decode("utf8"))
-        elif node.type == "function_definition":
-            func_name_node = node.child_by_field_name("name")
-            if func_name_node:
-                # Basic decorator check (rough heuristic for now)
-                decorators = [content[c.start_byte:c.end_byte].decode("utf8") for c in node.children if c.type == "decorator"]
-                dec_str = f" [{', '.join(decorators)}]" if decorators else ""
-                functions.append(func_name_node.text.decode("utf8") + dec_str)
-        elif node.type == "class_definition":
-            class_name_node = node.child_by_field_name("name")
-            superclasses_node = node.child_by_field_name("superclasses")
-            if class_name_node:
-                base_str = f"({content[superclasses_node.start_byte:superclasses_node.end_byte].decode('utf8')})" if superclasses_node else ""
-                classes.append(class_name_node.text.decode("utf8") + base_str)
-                
-        for child in node.children:
-            traverse(child)
+    if "import" in captures:
+        for node in captures["import"]:
+            imports.append(content[node.start_byte:node.end_byte].decode("utf8", errors="ignore"))
+    if "import_from" in captures:
+        for node in captures["import_from"]:
+            imports.append(content[node.start_byte:node.end_byte].decode("utf8", errors="ignore"))
             
-    traverse(root_node)
-    return imports, functions, classes
+    # For functions and classes, we'll use a simpler approach since dict keys lose ordering/pairing
+    # Re-run for specific pairs if needed, or just use the node's own children.
+    # Actually, the 'function' identifier is a child of 'function_definition'.
+    
+    if "function_full" in captures:
+        for node in captures["function_full"]:
+            name_node = node.child_by_field_name("name")
+            if name_node:
+                name = content[name_node.start_byte:name_node.end_byte].decode("utf8", errors="ignore")
+                functions.append({
+                    "name": name,
+                    "line_range": (node.start_point[0] + 1, node.end_point[0] + 1)
+                })
+                
+    if "class_full" in captures:
+        for node in captures["class_full"]:
+            name_node = node.child_by_field_name("name")
+            if name_node:
+                name = content[name_node.start_byte:name_node.end_byte].decode("utf8", errors="ignore")
+                classes.append({
+                    "name": name,
+                    "line_range": (node.start_point[0] + 1, node.end_point[0] + 1)
+                })
+            
+    return list(set(imports)), functions, classes
 
 def extract_sql_structure(tree, content: bytes):
     """

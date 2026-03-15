@@ -11,6 +11,7 @@ from sklearn.cluster import KMeans
 from sentence_transformers import SentenceTransformer
 from ..models.nodes import ModuleNode
 from ..models.semantic import ContextWindowBudget, SemanticAnalysisResult
+from ..utils.trace_logger import default_trace
 
 # Load environment variables from .env
 load_dotenv()
@@ -197,6 +198,15 @@ DriftReason: [Brief explanation if Yes]
             metadatas=[{"path": node.path, "is_drift": bool(is_drift)}]
         )
         
+        # Log to trace
+        default_trace.log_action(
+            agent="Semanticist",
+            action="generate_purpose",
+            evidence=f"LLM inference ({self.llm.model_bulk}) + implementation analysis",
+            confidence=0.8,
+            metadata={"path": node.path, "is_drift": bool(is_drift), "model": self.llm.model_bulk}
+        )
+
         return SemanticAnalysisResult(
             module_id=node.id,
             purpose_statement=purpose,
@@ -205,19 +215,35 @@ DriftReason: [Brief explanation if Yes]
             embedding=embedding
         )
 
-    def cluster_into_domains(self, n_clusters: int = 5):
+    def cluster_into_domains(self, n_clusters: int = None):
         """
         Fetches all embeddings from ChromaDB and clusters them.
+        If n_clusters is None, it uses the elbow method or a sensible default.
         """
         data = self.collection.get(include=['embeddings', 'metadatas', 'documents'])
         ids = data['ids']
         embeddings = data['embeddings']
         
-        if embeddings is None or len(embeddings) < n_clusters:
-            logger.warning(f"Not enough data to cluster (need {n_clusters}, got {len(embeddings) if embeddings else 0}).")
+        if embeddings is None or len(embeddings) < 2:
+            logger.warning("Not enough data to cluster.")
             return {}
 
         X = np.array(embeddings)
+        num_samples = len(X)
+        
+        # Auto-select n_clusters if not provided
+        if n_clusters is None:
+            if num_samples <= 5:
+                n_clusters = 2
+            else:
+                # Simple rule of thumb: sqrt(n/2)
+                n_clusters = int(np.sqrt(num_samples / 2))
+                n_clusters = max(2, min(n_clusters, 8)) # Keep between 2 and 8
+            logger.info(f"Auto-selected n_clusters={n_clusters} for {num_samples} samples.")
+
+        if num_samples < n_clusters:
+            n_clusters = num_samples
+
         kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init='auto').fit(X)
         labels = kmeans.labels_
         
@@ -229,9 +255,10 @@ DriftReason: [Brief explanation if Yes]
         cluster_summaries = {}
         for label in range(n_clusters):
             idx = [i for i, l in enumerate(labels) if l == label]
-            docs = [data['documents'][i] for i in idx[:5]] # Top 5 modules
+            # Include both path and purpose for better context
+            modules_info = [f"File: {data['metadatas'][i]['path']}\nPurpose: {data['documents'][i]}" for i in idx[:5]]
             
-            prompt = f"Given these module purpose statements, suggest a 1-2 word business domain name. Prefer standard categories like 'ingestion', 'transformation', 'serving', 'monitoring', 'marts', 'staging', 'infrastructure' if they fit.\n\nDESCRIPTIONS:\n" + "\n".join(docs)
+            prompt = f"Given these module descriptions (file path and purpose), suggest a 1-2 word business domain name. Prefer standard categories like 'ingestion', 'transformation', 'serving', 'monitoring', 'marts', 'staging', 'infrastructure' if they fit.\n\nDESCRIPTIONS:\n" + "\n---\n".join(modules_info)
             domain_name = self.llm.chat(prompt, system="You are an expert software architect. Give only the domain name.")
             # Clean domain name
             domain_name = re.sub(r'[*_]{1,3}', '', domain_name).strip().strip('"')
@@ -239,44 +266,15 @@ DriftReason: [Brief explanation if Yes]
 
         # Map back to human names
         final_mapping = {mid: cluster_summaries[domain] for mid, domain in results.items()}
+        
+        # Log to trace
+        default_trace.log_action(
+            agent="Semanticist",
+            action="cluster_domains",
+            evidence=f"K-Means + LLM labeling ({self.llm.model_bulk})",
+            confidence=0.75,
+            metadata={"n_clusters": n_clusters, "mapping": final_mapping}
+        )
+        
         return final_mapping
 
-    def generate_day_one_brief(self, kg_manager) -> str:
-        """
-        Synthesizes the Five FDE Day-One Answers using the full architectural context.
-        """
-        # Collect context
-        modules = kg_manager.data_store.modules
-        top_hubs = sorted(kg_manager.compute_pagerank().items(), key=lambda x: x[1], reverse=True)[:10]
-        
-        # Prepare a concise summary of the graph for the LLM
-        module_context = []
-        for node in modules[:50]: # Limit for context window
-            module_context.append(f"- {node.path}: {node.purpose_statement} (Domain: {node.domain_cluster}, Drift: {node.is_doc_drift})")
-        
-        lineage_context = f"Lineage Graph has {len(kg_manager.lineage_graph.nodes)} nodes and {len(kg_manager.lineage_graph.edges)} edges."
-        
-        prompt = f"""
-I am a new FDE joining this project. Based on your full analysis of the code, answer the **Five FDE Day-One Questions** to help me get up to speed in 72 hours.
-
-CONTEXT:
-Repository: {self.repo_path}
-Architectural Hubs (Top PageRank): {", ".join([h[0] for h in top_hubs])}
-{lineage_context}
-
-MODULE SAMPLES:
-{"\n".join(module_context)}
-
-TASK: Answer these 5 questions with directness and evidence. Cite specific files or patterns.
-1. What is the primary data ingestion path? (How does data enter the system?)
-2. What are the 3-5 most critical output datasets/endpoints? (What provides value?)
-3. What is the blast radius if the most critical module fails? (What breaks downstream?)
-4. Where is the business logic concentrated vs. distributed? (Is it in SQL, Python, or config?)
-5. What has changed most frequently in the last 90 days? (Based on git velocity patterns)
-
-FORMAT:
-Markdown document with # Five FDE Day-One Answers header.
-Each question as an H2, followed by a concise answer with evidence citations.
-"""
-        logger.info("Generating 'Five FDE Day-One Answers' using synthesis tier model...")
-        return self.llm.chat(prompt, tier="synthesis")

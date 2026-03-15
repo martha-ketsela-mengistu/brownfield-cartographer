@@ -1,0 +1,93 @@
+{
+  "directed": true,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "id": "stg_telegram_messages"
+    },
+    {
+      "id": "dim_channels"
+    },
+    {
+      "id": "dim_dates"
+    },
+    {
+      "id": "stg_image_detections"
+    },
+    {
+      "id": "fct_image_detections"
+    },
+    {
+      "id": "fct_messages"
+    },
+    {
+      "id": "raw_image_detections"
+    },
+    {
+      "id": "raw_telegram_messages"
+    },
+    {
+      "id": "positive_view_counts"
+    },
+    {
+      "id": "valid_message_timestamps"
+    }
+  ],
+  "edges": [
+    {
+      "type": "sql",
+      "file_path": "telegram_data\\models\\marts\\core\\dim_channels.sql",
+      "source": "stg_telegram_messages",
+      "target": "dim_channels"
+    },
+    {
+      "type": "sql",
+      "file_path": "telegram_data\\models\\marts\\core\\dim_dates.sql",
+      "source": "stg_telegram_messages",
+      "target": "dim_dates"
+    },
+    {
+      "type": "sql",
+      "file_path": "telegram_data\\models\\marts\\core\\fct_messages.sql",
+      "source": "stg_telegram_messages",
+      "target": "fct_messages"
+    },
+    {
+      "type": "sql",
+      "file_path": "telegram_data\\tests\\positive_view_counts.sql",
+      "source": "stg_telegram_messages",
+      "target": "positive_view_counts"
+    },
+    {
+      "type": "sql",
+      "file_path": "telegram_data\\tests\\valid_message_timestamps.sql",
+      "source": "stg_telegram_messages",
+      "target": "valid_message_timestamps"
+    },
+    {
+      "type": "sql",
+      "file_path": "telegram_data\\models\\marts\\core\\fct_image_detections.sql",
+      "source": "stg_image_detections",
+      "target": "fct_image_detections"
+    },
+    {
+      "type": "sql",
+      "file_path": "telegram_data\\models\\marts\\core\\fct_image_detections.sql",
+      "source": "fct_messages",
+      "target": "fct_image_detections"
+    },
+    {
+      "type": "sql",
+      "file_path": "telegram_data\\models\\staging\\stg_image_detections.sql",
+      "source": "raw_image_detections",
+      "target": "stg_image_detections"
+    },
+    {
+      "type": "sql",
+      "file_path": "telegram_data\\models\\staging\\stg_telegram_messages.sql",
+      "source": "raw_telegram_messages",
+      "target": "stg_telegram_messages"
+    }
+  ]
+}
