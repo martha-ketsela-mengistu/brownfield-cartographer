@@ -54,7 +54,10 @@ def analyze(
             shutil.rmtree(repo_path, onerror=remove_readonly)
 
 @app.command(name="query")
-def query_graph(question: str):
+def query_graph(
+    question: str = typer.Argument(..., help="The question to ask the Navigator"),
+    path: str = typer.Option(".", "--path", "-p", help="Path to the repository (to load artifacts)")
+):
     """
     Directly query the codebase knowledge graph using the Navigator agent.
     """
@@ -63,12 +66,12 @@ def query_graph(question: str):
     from .orchestrator import Orchestrator
     
     # We need to load existing state
-    # Orchestrator's repo_path is just a dummy here as we expect .cartography to exist
-    orchestrator = Orchestrator(".") 
+    orchestrator = Orchestrator(path) 
     
     graph_path = os.path.join(orchestrator.output_dir, "module_graph.json")
     if not os.path.exists(graph_path):
-        print("Analysis artifacts not found. Please run 'analyze' first.")
+        print(f"Analysis artifacts not found at {graph_path}.")
+        print("Please run 'analyze' first, or use '--path <path>' if you analyzed a specific repository.")
         return
         
     print(f"Loading knowledge graph and semantic index...")
