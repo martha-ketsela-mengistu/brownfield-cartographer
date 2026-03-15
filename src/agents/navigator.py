@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import operator
 from typing import Annotated, List, Union, Dict, Any
 from typing_extensions import TypedDict
 from dotenv import load_dotenv
@@ -13,6 +14,7 @@ from langchain_core.messages import BaseMessage, HumanMessage, ToolMessage
 from langchain_core.tools import tool
 from langchain_ollama import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+import networkx as nx
 
 from ..graph.knowledge_graph import KnowledgeGraphManager
 from ..agents.semanticist import IntelligentLLMWrapper
@@ -45,7 +47,7 @@ def find_implementation(concept: str) -> str:
     
     formatted_results = []
     for i in range(len(results['ids'][0])):
-        formatted_results.append(f"- Module: `{results['ids'][0][i]}`\n  Purpose: {results['documents'][0][i]}")
+        formatted_results.append(f"- Module: `{results['ids'][0][i]}`\n  Purpose: {results['documents'][0][i]}\n  Method: **Semantic Search (Vector Index)**")
     
     res_str = "\n".join(formatted_results)
     
@@ -58,7 +60,7 @@ def find_implementation(concept: str) -> str:
         metadata={"concept": concept, "top_result": results['ids'][0][0] if results['ids'][0] else None}
     )
     
-    return f"Semantic search results for '{concept}':\n{res_str}"
+    return f"### Semantic Findings for '{concept}':\n{res_str}"
 
 @tool
 def trace_lineage(dataset: str, direction: str = "upstream") -> str:
@@ -76,7 +78,7 @@ def trace_lineage(dataset: str, direction: str = "upstream") -> str:
         
     formatted = []
     for u, v, data in edges:
-        formatted.append(f"- `{u}` -> `{v}` (via {data.get('type', 'link')} in `{data.get('file_path', 'unknown')}`)")
+        formatted.append(f"- `{u}` -> `{v}`\n  - Via: `{data.get('type', 'link')}`\n  - Source: `{data.get('file_path', 'unknown')}`\n  - Method: **Static Lineage Analysis**")
         
     res_str = "\n".join(formatted) if formatted else f"No {direction} lineage found for `{dataset}`."
     
@@ -89,7 +91,7 @@ def trace_lineage(dataset: str, direction: str = "upstream") -> str:
         metadata={"dataset": dataset, "direction": direction, "edge_count": len(edges)}
     )
     
-    return f"{direction.capitalize()} lineage for `{dataset}`:\n{res_str}"
+    return f"### {direction.capitalize()} Lineage for `{dataset}`:\n{res_str}"
 
 @tool
 def blast_radius(module_path: str) -> str:
@@ -108,13 +110,25 @@ def blast_radius(module_path: str) -> str:
             impacted.append(f"- `{v}` (Direct Import)")
             
     # 2. Lineage graph (data flow)
-    # Note: module_path might be a file path, we need to find data entities associated with it
-    # For now, let's look for lineage edges where file_path == module_path
+    # Use nx.descendants to find all transitive impacted nodes
+    if module_path in _kg_manager.lineage_graph:
+        transitive_impact = nx.descendants(_kg_manager.lineage_graph, module_path)
+        for node in transitive_impact:
+            impacted.append(f"- `{node}` (Transitive Data Dependent)")
+    
+    # Also check if this file is a source of any transformation
+    norm_module_path = os.path.normpath(module_path)
     for u, v, data in _kg_manager.lineage_graph.edges(data=True):
-        if data.get("file_path") == module_path:
+        edge_path = data.get("file_path")
+        if edge_path and os.path.normpath(edge_path) == norm_module_path:
             impacted.append(f"- `{v}` (Data Sink of transformation in this file)")
+            # Add descendants of these sinks too
+            transitive_sinks = nx.descendants(_kg_manager.lineage_graph, v)
+            for node in transitive_sinks:
+                impacted.append(f"- `{node}` (Transitive Data Dependent via {v})")
 
-    res_str = "\n".join(set(impacted)) if impacted else f"No direct downstream impact detected for `{module_path}`."
+    res_str = "\n".join(set(impacted)) if impacted else f"No direct or transitive downstream impact detected for `{module_path}`."
+    res_str += "\n\nMethod: **Graph Traversal (Descendants Analysis)**"
     
     # Log action to trace
     default_trace.log_action(
@@ -125,7 +139,7 @@ def blast_radius(module_path: str) -> str:
         metadata={"module_path": module_path, "impact_count": len(impacted)}
     )
     
-    return f"Blast radius of changing `{module_path}`:\n{res_str}"
+    return f"### Blast Radius of `{module_path}`:\n{res_str}"
 
 @tool
 def explain_module(path: str) -> str:
@@ -148,8 +162,16 @@ def explain_module(path: str) -> str:
     explanation += f"- **Purpose**: {module.purpose_statement}\n"
     explanation += f"- **Domain**: {module.domain_cluster}\n"
     explanation += f"- **Language**: {module.language}\n"
-    explanation += f"- **LOC**: {module.loc}\n"
-    explanation += f"- **Functions**: {', '.join([f['name'] for f in module.functions]) if module.functions else 'None'}\n"
+    explanation += f"- **Complexity**: {module.complexity_score:.2f} (Cyclomatic)\n"
+    
+    func_list = []
+    for f in module.functions:
+        rng = f.get('line_range')
+        rng_str = f" [L{rng[0]}-L{rng[1]}]" if rng else ""
+        func_list.append(f"`{f['name']}`{rng_str}")
+    
+    explanation += f"- **Functions**: {', '.join(func_list) if func_list else 'None'}\n"
+    explanation += f"- **Analysis Method**: **Static Analysis + LLM Purpose Inference**\n"
     
     if module.is_doc_drift:
         explanation += f"\n> [!WARNING]\n> **Doc Drift Detected**: {module.doc_drift_explanation}\n"
@@ -166,12 +188,16 @@ def explain_module(path: str) -> str:
     return explanation
 
 class AgentState(TypedDict):
-    messages: Annotated[List[BaseMessage], "The messages in the conversation"]
+    messages: Annotated[List[BaseMessage], operator.add]
 
 class NavigatorAgent:
-    def __init__(self, model_name: str = "gpt-oss:120b"):
+    def __init__(self, model_name: str = None):
         self.tools = [find_implementation, trace_lineage, blast_radius, explain_module]
         
+        # Use bulk model designated in env, or fall back to ministral
+        if not model_name:
+            model_name = os.getenv("OLLAMA_MODEL_BULK", "ministral-3:8b")
+            
         # Use Ollama via OpenAI-compatible endpoint
         ollama_host = os.getenv("OLLAMA_HOST", "https://ollama.com")
 
